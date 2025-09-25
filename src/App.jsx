@@ -1,15 +1,15 @@
 import React from 'react'
-import navbar from './navbar'
-import trackScene from './trackScene'
+import Navbar from './components/navbar.jsx'
+import TrackScene from './components/trackScene.jsx'
 import './App.css'
 
 function App() {
 
   return (
     <>
-      <navbar />
+      <Navbar />
       <section id="home">
-        <trackScene />
+        <TrackScene />
       </section>
       <section id="bio">
         <h2>Bio</h2>
