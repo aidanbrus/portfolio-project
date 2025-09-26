@@ -8,10 +8,11 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { emissive, materialReflectivity, materialSpecularIntensity } from 'three/tsl';
-import {newReflector} from '../utils/newReflector.js';
+import { newReflector } from '../utils/newReflector.js';
+import { useState } from 'react';
 
 
-export default function TrackScene() {
+export default function TrackScene( {navBarTrigger} ) {
   const mountRef = useRef(null);
 
   useEffect(() => {
@@ -502,7 +503,7 @@ export default function TrackScene() {
             camProgress1 += camSpeed;
             if (camProgress1 > 1) {
                 camProgress1 = 1;
-                camPhase = 2.0; // move to next phase, or stay idle
+                camPhase = 2.0; // move to next phase
             }
             let easing = easeIOCubic(camProgress1);
 
@@ -514,7 +515,9 @@ export default function TrackScene() {
             camProgress2 += camSpeed;
             if (camProgress2 > 1) {
                 camProgress2 = 1;
-                camPhase = 3.0; // move to next phase, or stay idle
+                camPhase = 3.0; // move to next phase
+                console.log("Triggering navbar, camPhase =", camPhase);
+                navBarTrigger(camPhase);
             }
             let easing = easeIOCubic(camProgress2);
 
@@ -553,14 +556,32 @@ export default function TrackScene() {
         composer.render();
     }
     // Cleanup
-    return () => { mountRef.current.removeChild(renderer.domElement);
-        renderer.dispose(); // free GPU resources
-        // Optionally dispose geometries and materials
-        geometry.dispose();
-        material.dispose();
+    return () => {
+        // Remove the canvas from DOM
+        if (renderer && mountRef.current?.contains(renderer.domElement)) {
+            mountRef.current.removeChild(renderer.domElement);
+        }
+
+        // delete renderer
+        renderer.dispose();
+
+        // delete objects 
+        scene.traverse(obj => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => m.dispose());
+            } else {
+                obj.material.dispose();
+            }
+            }
+        });
+
+        // cancel animation loop
+        cancelAnimationFrame(animationId);
     };
 
-    return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
+    //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
     }, []);
 
 }

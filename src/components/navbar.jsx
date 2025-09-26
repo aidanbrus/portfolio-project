@@ -2,16 +2,31 @@
 // last line is if I want a separate page for boring stuff like private policy and the like
 
 import React from 'react';
+import { useState, useEffect } from 'react';
+import '../index.css';
 
-export default function navbar() {
+function Navbar() {
+  const [shrunk, setShrunk] = useState(false);
+
+  useEffect(() => {
+    
+    const handleScroll = () => {
+      setShrunk(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav style={{ position: 'sticky', top: 0, backgroundColor: '#222', padding: '1rem', color: '#fff' }}>
-      <ul style={{ display: 'flex', gap: '1rem', listStyle: 'none' }}>
-        <li><a href="#home" style={{ color: 'white' }}>Home</a></li>
-        <li><a href="#bio" style={{ color: 'white' }}>Bio</a></li>
-        <li><a href="#projects" style={{ color: 'white' }}>Projects</a></li>
-        <li><a href="/privacy.html" style={{ color: 'white' }}>Privacy Policy</a></li>
+    <nav className={`navbar ${shrunk ? "shrunk" : ""}`}>
+      <ul>
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
       </ul>
     </nav>
   );
 }
+
+export default Navbar;

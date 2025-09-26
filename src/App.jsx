@@ -1,15 +1,23 @@
-import React from 'react'
-import Navbar from './components/navbar.jsx'
-import TrackScene from './components/trackScene.jsx'
-import './App.css'
+import React from 'react';
+import Navbar from './components/navbar.jsx';
+import TrackScene from './components/trackScene.jsx';
+import { useState } from 'react';
+import './App.css';
 
 function App() {
+  const [showNavbar, setShowNavbar] = useState(false);
+
+  const handleNavTrigger = (phase) => {
+    if (phase === 3) {
+      setShowNavbar(true);
+    }
+  };
 
   return (
     <>
-      <Navbar />
       <section id="home">
-        <TrackScene />
+        <TrackScene navBarTrigger={handleNavTrigger} />
+        {showNavbar && <Navbar />}
       </section>
       <section id="bio">
         <h2>Bio</h2>
@@ -20,7 +28,7 @@ function App() {
         <p>Some project info here.</p>
       </section>
     </>
-  )
+  );
 }
 
 export default App
