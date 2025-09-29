@@ -3,6 +3,7 @@ import Navbar from './components/navbar.jsx';
 import TrackScene from './components/trackScene.jsx';
 import { useState } from 'react';
 import './App.css';
+import './index.css';
 
 function App() {
   const [showNavbar, setShowNavbar] = useState(false);
@@ -17,7 +18,7 @@ function App() {
     <>
       <section id="home">
         <TrackScene navBarTrigger={handleNavTrigger} />
-        {showNavbar && <Navbar />}
+        {showNavbar && <Navbar visible={showNavbar} />}
       </section>
       <section id="bio">
         <h2>Bio</h2>

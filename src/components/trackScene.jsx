@@ -516,7 +516,7 @@ export default function TrackScene( {navBarTrigger} ) {
             if (camProgress2 > 1) {
                 camProgress2 = 1;
                 camPhase = 3.0; // move to next phase
-                console.log("Triggering navbar, camPhase =", camPhase);
+                // console.log("Triggering navbar, camPhase =", camPhase);
                 navBarTrigger(camPhase);
             }
             let easing = easeIOCubic(camProgress2);
@@ -535,7 +535,7 @@ export default function TrackScene( {navBarTrigger} ) {
 
             camera.position.copy(curve.getPointAt(camDist));
 
-            // Option 1: make camera look forward along the track
+            // make camera look forward along the track
             const lookAtPoint = position.clone().add(tangent);
             camera.lookAt(lookAtPoint);
 
