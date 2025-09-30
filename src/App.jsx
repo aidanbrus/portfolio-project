@@ -9,6 +9,7 @@ function App() {
   const [showNavbar, setShowNavbar] = useState(false);
 
   const handleNavTrigger = (phase) => {
+    console.log("handleNavTrigger called with phase =", phase);
     if (phase === 3) {
       setShowNavbar(true);
     }

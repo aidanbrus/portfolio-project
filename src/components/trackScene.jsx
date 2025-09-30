@@ -12,10 +12,12 @@ import { newReflector } from '../utils/newReflector.js';
 import { useState } from 'react';
 
 
-export default function TrackScene( {navBarTrigger} ) {
+function TrackScene( {navBarTrigger} ) {
   const mountRef = useRef(null);
 
   useEffect(() => {
+    if (!mountRef.current) return;
+
     let scene, camera, renderer, composer, cameraPos;
     let curve;
     let loadingScene, loadAnimID, tracer, manager, Loadtrack, elapsed;
@@ -346,16 +348,19 @@ export default function TrackScene( {navBarTrigger} ) {
     function initLoadingScene() {
         // scene
         loadingScene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera = new THREE.PerspectiveCamera( 75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+        // old window stuff: window.innerWidth/window.innerHeight
         camera.position.set( 0, 72.5, 500);
 
         // loadingScene.fog = new THREE.FogExp2(0x000000, 0.004);
 
         // loading renderer
         renderer = new THREE.WebGLRenderer({ antialias:true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+        // old setSize arguments: window.innerWidth, window.innerHeight
         renderer.setClearColor(0x000000, 1);
-        document.body.appendChild(renderer.domElement);
+        mountRef.current.appendChild(renderer.domElement);
+        // old code before react: document.body.appendChild(renderer.domElement);
 
         // low quality version of background
         loadingScene.background = new THREE.Color(0x0a0a1a);
@@ -517,6 +522,7 @@ export default function TrackScene( {navBarTrigger} ) {
                 camProgress2 = 1;
                 camPhase = 3.0; // move to next phase
                 // console.log("Triggering navbar, camPhase =", camPhase);
+                console.log("Triggering navbar, camPhase =", camPhase);
                 navBarTrigger(camPhase);
             }
             let easing = easeIOCubic(camProgress2);
@@ -581,7 +587,15 @@ export default function TrackScene( {navBarTrigger} ) {
         cancelAnimationFrame(animationId);
     };
 
-    //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
+    // return (
+    //     <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />
+    // ) 
     }, []);
 
+    return (
+        <div id = "scene-container" ref={mountRef} style={{ width: '100%', height: '100vh' }} />
+    ); 
+
 }
+
+export default TrackScene;
