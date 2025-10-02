@@ -16,14 +16,14 @@ function TrackScene( {navBarTrigger} ) {
   const mountRef = useRef(null);
 
   useEffect(() => {
-    if (!mountRef.current) return;
+    //if (!mountRef.current) return;
 
     let scene, camera, renderer, composer, cameraPos;
     let curve;
     let loadingScene, loadAnimID, tracer, manager, Loadtrack, elapsed;
     let mirror, track, botPlane;
     let camDist;
-    let frameCount = 0; // global comunter
+    let loadComplete = false;
     let tracerT = 0;
     let speed = 0.25;
     let lastFrameTime = performance.now();
@@ -35,6 +35,7 @@ function TrackScene( {navBarTrigger} ) {
     let camProgress3 = 0.0;
     let camSpeed = 0.004;
     let phaseTwoClick = false;
+    let switchCheck = false;
 
     function createTrack() {
         // trace of the track
@@ -338,26 +339,30 @@ function TrackScene( {navBarTrigger} ) {
     }
 
     init(); 
-    // animate();
 
     function init() {
         initLoadingScene();
-        animationLoader();
+        animate();
+        // old: animationLoader();
     }
 
     function initLoadingScene() {
+        console.log('init loading')
         // scene
         loadingScene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera( 75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+        camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000);
         // old window stuff: window.innerWidth/window.innerHeight
+        // new stuff: mountRef.current.clientWidth / mountRef.current.clientHeight
         camera.position.set( 0, 72.5, 500);
+        camera.lookAt(0,72.5,0);
 
         // loadingScene.fog = new THREE.FogExp2(0x000000, 0.004);
 
         // loading renderer
         renderer = new THREE.WebGLRenderer({ antialias:true });
-        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         // old setSize arguments: window.innerWidth, window.innerHeight
+        // new ones: mountRef.current.clientWidth, mountRef.current.clientHeight
         renderer.setClearColor(0x000000, 1);
         mountRef.current.appendChild(renderer.domElement);
         // old code before react: document.body.appendChild(renderer.domElement);
@@ -377,80 +382,72 @@ function TrackScene( {navBarTrigger} ) {
         loadingScene.add(tracer);
 
         // loading manager
-        manager = new THREE.LoadingManager();
-        manager.onLoad = handleLoadComplete();
-        }
-
-        // let tracerT = 0;
-        // let speed = 1;
-        // let lastFrameTime = performance.now();
-
-        function animationLoader() {
-        loadAnimID = requestAnimationFrame(animationLoader);
-
-        // tracer animation
-        const now = performance.now();
-        const delta = (now - lastFrameTime) / 1000; // seconds
-        lastFrameTime = now;
-
-        tracerT = (tracerT + speed * delta) % 1;
-        tracer.position.copy(curve.getPointAt(tracerT));
-        tracer.position.y += 0.5;
-
-        renderer.render(loadingScene, camera);
+        // manager = new THREE.LoadingManager();
+        // manager.onLoad = handleLoadComplete();
     }
 
+    // function animationLoader() {
+    //     loadAnimID = requestAnimationFrame(animationLoader);
+
+    //     // tracer animation
+    //     const now = performance.now();
+    //     const delta = (now - lastFrameTime) / 1000; // seconds
+    //     lastFrameTime = now;
+
+    //     tracerT = (tracerT + speed * delta) % 1;
+    //     tracer.position.copy(curve.getPointAt(tracerT));
+    //     tracer.position.y += 0.5;
+
+    //     renderer.render(loadingScene, camera);
+    // }
+
+    // function handleLoadComplete() {
+    //     const now = performance.now();
+    //     elapsed = now - loadStartTime;
+
+    //     if (elapsed > 4000 && tracerT < 0.01) {
+    //         cancelAnimationFrame(loadAnimID);
+    //         camPhase = 1.0;
+    //         initMainScene();
+    //         animate();
+    //     } else {
+    //         const remaining = 4000 - elapsed;
+    //         setTimeout(() => {
+    //         cancelAnimationFrame(loadAnimID);
+    //         camPhase = 1.0;
+    //         initMainScene();
+    //         animate();
+    //         }, remaining);
+    //     };
+    // }
+
     function handleLoadComplete() {
+        console.log('handling loading')
         const now = performance.now();
         elapsed = now - loadStartTime;
-        //console.log(elapsed);
 
         if (elapsed > 4000 && tracerT < 0.01) {
-            cancelAnimationFrame(loadAnimID);
             camPhase = 1.0;
-            initMainScene();
-            animate();
+            loadComplete = true;
+            console.log('Is loading complete:', loadComplete)
         } else {
             const remaining = 4000 - elapsed;
             setTimeout(() => {
-            cancelAnimationFrame(loadAnimID);
-            camPhase = 1.0;
-            initMainScene();
-            animate();
+                camPhase = 1.0;
+                loadComplete = true; 
+                console.log('Is loading complete:', loadComplete)
             }, remaining);
-        };
+        }
     }
 
     function initMainScene() {
+        console.log('init main')
         // fog
         scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x000000, 0.004);
 
-        // camera
-        // camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        // camera.position.set( 0, 72.5, 400);
-
-        // renderer
-        // renderer = new THREE.WebGLRenderer({ antialias:true });
-        // renderer.setSize(window.innerWidth, window.innerHeight);
-        // renderer.setClearColor(0x000000, 1);
-        // document.body.appendChild(renderer.domElement);
-
-        // controls
-        // const controls = new OrbitControls(camera, renderer.domElement);
-
         // scene
         scene.background = new THREE.Color(0x0a0a1a);
-
-        // lighting
-        // const light = new THREE.DirectionalLight(0xFFFFFF, 3);
-        // light.position.set(50, 50, 200);
-        // light.target.position.set(0, 50, 0);
-        // scene.add(light);
-        // scene.add(light.target);
-
-        // const ambient = new THREE.AmbientLight(0x222244, 0.3);
-        // scene.add(ambient);
 
         // track
         track = createTrack();
@@ -501,7 +498,7 @@ function TrackScene( {navBarTrigger} ) {
         camDist = scrollY / scrollableHeight;
     });
 
-    function updateCamera(camDist){
+    function updateCamera(camDist) {
         if (camPhase == 1.0){
             // transition from loading camera spot to initial main spot
             setTimeout(() => {
@@ -555,46 +552,80 @@ function TrackScene( {navBarTrigger} ) {
             : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
+    // function animate() {
+    //     requestAnimationFrame(animate);
+    //     updateCamera();
+
+    //     composer.render();
+    // }
+
     function animate() {
-        requestAnimationFrame(animate);
-        updateCamera();
+        var frameId = requestAnimationFrame(animate);
+        // var switchCheck = false;
 
-        composer.render();
+        if (!switchCheck) {
+            console.log(switchCheck);
+            const now = performance.now();
+            const delta = (now - lastFrameTime) / 1000;
+            lastFrameTime = now;
+
+            tracerT = (tracerT + speed * delta) % 1;
+            tracer.position.copy(curve.getPointAt(tracerT));
+            tracer.position.y += 0.5;
+
+            renderer.render(loadingScene, camera);
+
+            manager = new THREE.LoadingManager();
+            manager.onLoad = handleLoadComplete();
+
+            if (loadComplete === true) {
+                switchCheck = true;
+                initMainScene();
+            }
+            //return;
+        } else {
+            console.log('switch scene');
+            console.log(switchCheck);
+            updateCamera();
+            composer.render();
+        }     
     }
-    // Cleanup
-    return () => {
-        // Remove the canvas from DOM
-        if (renderer && mountRef.current?.contains(renderer.domElement)) {
-            mountRef.current.removeChild(renderer.domElement);
-        }
 
-        // delete renderer
-        renderer.dispose();
 
-        // delete objects 
-        scene.traverse(obj => {
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) {
-            if (Array.isArray(obj.material)) {
-                obj.material.forEach(m => m.dispose());
-            } else {
-                obj.material.dispose();
-            }
-            }
-        });
+    // // Cleanup
+    // return () => {
+    //     // Remove the canvas from DOM
+    //     if (renderer && mountRef.current?.contains(renderer.domElement)) {
+    //         mountRef.current.removeChild(renderer.domElement);
+    //     }
 
-        // cancel animation loop
-        cancelAnimationFrame(animationId);
-    };
+    //     // delete renderer
+    //     renderer.dispose();
+
+    //     // delete objects 
+    //     scene.traverse(obj => {
+    //         if (obj.geometry) obj.geometry.dispose();
+    //         if (obj.material) {
+    //         if (Array.isArray(obj.material)) {
+    //             obj.material.forEach(m => m.dispose());
+    //         } else {
+    //             obj.material.dispose();
+    //         }
+    //         }
+    //     });
+
+    //     // cancel animation loop
+    //     cancelAnimationFrame(loadAnimID);
+    // };
+
 
     // return (
     //     <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />
     // ) 
     }, []);
 
-    return (
-        <div id = "scene-container" ref={mountRef} style={{ width: '100%', height: '100vh' }} />
-    ); 
+    return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
+         
 
 }
 
