@@ -7,13 +7,16 @@ import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { emissive, materialReflectivity, materialSpecularIntensity } from 'three/tsl';
+import { emissive, materialReflectivity, materialSpecularIntensity, objectDirection } from 'three/tsl';
 import { newReflector } from '../utils/newReflector.js';
 import { useState } from 'react';
 
 
 function TrackScene( {navBarTrigger} ) {
   const mountRef = useRef(null);
+  const sceneRef = useRef(null);
+  const renderRef = useRef(null);
+  const animationRef = useRef(null);
 
   useEffect(() => {
     //if (!mountRef.current) return;
@@ -36,6 +39,9 @@ function TrackScene( {navBarTrigger} ) {
     let camSpeed = 0.004;
     let phaseTwoClick = false;
     let switchCheck = false;
+    let frameId;
+
+
 
     function createTrack() {
         // trace of the track
@@ -347,9 +353,9 @@ function TrackScene( {navBarTrigger} ) {
     }
 
     function initLoadingScene() {
-        console.log('init loading')
         // scene
         loadingScene = new THREE.Scene();
+        sceneRef.current = loadingScene;
         camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000);
         // old window stuff: window.innerWidth/window.innerHeight
         // new stuff: mountRef.current.clientWidth / mountRef.current.clientHeight
@@ -366,6 +372,7 @@ function TrackScene( {navBarTrigger} ) {
         renderer.setClearColor(0x000000, 1);
         mountRef.current.appendChild(renderer.domElement);
         // old code before react: document.body.appendChild(renderer.domElement);
+        renderRef.current = renderer;
 
         // low quality version of background
         loadingScene.background = new THREE.Color(0x0a0a1a);
@@ -422,28 +429,25 @@ function TrackScene( {navBarTrigger} ) {
     // }
 
     function handleLoadComplete() {
-        console.log('handling loading')
         const now = performance.now();
         elapsed = now - loadStartTime;
 
         if (elapsed > 4000 && tracerT < 0.01) {
             camPhase = 1.0;
             loadComplete = true;
-            console.log('Is loading complete:', loadComplete)
         } else {
             const remaining = 4000 - elapsed;
             setTimeout(() => {
                 camPhase = 1.0;
                 loadComplete = true; 
-                console.log('Is loading complete:', loadComplete)
             }, remaining);
         }
     }
 
     function initMainScene() {
-        console.log('init main')
         // fog
         scene = new THREE.Scene();
+        sceneRef.current = scene;
         scene.fog = new THREE.FogExp2(0x000000, 0.004);
 
         // scene
@@ -560,11 +564,10 @@ function TrackScene( {navBarTrigger} ) {
     // }
 
     function animate() {
-        var frameId = requestAnimationFrame(animate);
+        animationRef.current = requestAnimationFrame(animate);
         // var switchCheck = false;
 
         if (!switchCheck) {
-            console.log(switchCheck);
             const now = performance.now();
             const delta = (now - lastFrameTime) / 1000;
             lastFrameTime = now;
@@ -584,44 +587,45 @@ function TrackScene( {navBarTrigger} ) {
             }
             //return;
         } else {
-            console.log('switch scene');
-            console.log(switchCheck);
             updateCamera();
             composer.render();
         }     
     }
 
+    // clean up, for reloads and such
+    return () => {
+        if (animationRef.current) {
+            cancelAnimationFrame(animationRef.current);
+        }
 
-    // // Cleanup
-    // return () => {
-    //     // Remove the canvas from DOM
-    //     if (renderer && mountRef.current?.contains(renderer.domElement)) {
-    //         mountRef.current.removeChild(renderer.domElement);
-    //     }
+        window.removeEventListener('resize', onWindowResize);
+        // window.removeEventListener('click',);
+        // window.removeEventListener('scroll',);
 
-    //     // delete renderer
-    //     renderer.dispose();
+        if (sceneRef.current) {
+            sceneRef.current.traverse((object) => {
+                if (object.isMesh) {
+                    if (object.geometry) object.geometry.dispose();
+                    if (object.material) {
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach((m) => m.dispose());
+                        } else {
+                            object.material.dispose();
+                        }
+                    }
+                }
+            });
+        }
+    
+        // remove renderer
+        if (renderRef.current) {
+            if (renderRef.current.domElement && renderRef.current.domElement.parentNode) {
+                renderRef.current.domElement.parentNode.removeChild(renderRef.current.domElement);
+            }
+        }
 
-    //     // delete objects 
-    //     scene.traverse(obj => {
-    //         if (obj.geometry) obj.geometry.dispose();
-    //         if (obj.material) {
-    //         if (Array.isArray(obj.material)) {
-    //             obj.material.forEach(m => m.dispose());
-    //         } else {
-    //             obj.material.dispose();
-    //         }
-    //         }
-    //     });
+    };
 
-    //     // cancel animation loop
-    //     cancelAnimationFrame(loadAnimID);
-    // };
-
-
-    // return (
-    //     <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />
-    // ) 
     }, []);
 
     return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
