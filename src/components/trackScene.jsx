@@ -10,6 +10,8 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { emissive, materialReflectivity, materialSpecularIntensity, objectDirection } from 'three/tsl';
 import { newReflector } from '../utils/newReflector.js';
 import { useState } from 'react';
+import Navbar from './navbar.jsx'
+import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 
 
 function TrackScene( {navBarTrigger} ) {
@@ -17,6 +19,7 @@ function TrackScene( {navBarTrigger} ) {
   const sceneRef = useRef(null);
   const renderRef = useRef(null);
   const animationRef = useRef(null);
+  const cssRenderRef = useRef(null);
 
   useEffect(() => {
     //if (!mountRef.current) return;
@@ -39,7 +42,7 @@ function TrackScene( {navBarTrigger} ) {
     let camSpeed = 0.004;
     let phaseTwoClick = false;
     let switchCheck = false;
-    let frameId;
+    let cssRenderer;
 
 
 
@@ -465,6 +468,18 @@ function TrackScene( {navBarTrigger} ) {
         botPlane = createPlane();
         scene.add(botPlane);
 
+        // css2d renderer
+        const cssRenderer = new CSS2DRenderer();
+        cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        mountRef.current.appendChild(cssRenderer.domElement);
+        cssRenderRef.current = cssRenderer;
+
+        // navbar
+        const newNavbar = Navbar();
+        const navbarObj = new CSS2DObject(newNavbar);
+        navbarObj.position.set(0, 5, 15);
+        scene.add(navbarObj);
+
         // postprocessing w/ bloom
         const renderScene = new RenderPass(scene, camera);
         const bloomPass = new UnrealBloomPass(
@@ -588,6 +603,7 @@ function TrackScene( {navBarTrigger} ) {
             //return;
         } else {
             updateCamera();
+            cssRenderer.render(scene, camera);
             composer.render();
         }     
     }
@@ -617,11 +633,16 @@ function TrackScene( {navBarTrigger} ) {
             });
         }
     
-        // remove renderer
+        // remove scene renderer
         if (renderRef.current) {
             if (renderRef.current.domElement && renderRef.current.domElement.parentNode) {
                 renderRef.current.domElement.parentNode.removeChild(renderRef.current.domElement);
             }
+        }
+
+        // remove css2d renderer
+        if (cssRenderRef.current) {
+            cssRenderRef.current.domElement.remove();
         }
 
     };
