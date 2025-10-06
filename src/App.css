@@ -5,6 +5,18 @@
   text-align: center;
 }
 
+#container-track, #container-css {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#container-css {
+  pointer-events: none; /*so clicks go to main track scene and not the css2d scene*/
+}
+
 
 .navbar {
   position: fixed;

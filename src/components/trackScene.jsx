@@ -12,6 +12,7 @@ import { newReflector } from '../utils/newReflector.js';
 import { useState } from 'react';
 import Navbar from './navbar.jsx'
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
+import '../App.css';
 
 
 function TrackScene( {navBarTrigger} ) {
@@ -20,6 +21,7 @@ function TrackScene( {navBarTrigger} ) {
   const renderRef = useRef(null);
   const animationRef = useRef(null);
   const cssRenderRef = useRef(null);
+  const cssRef = useRef(null);
 
   useEffect(() => {
     //if (!mountRef.current) return;
@@ -42,7 +44,7 @@ function TrackScene( {navBarTrigger} ) {
     let camSpeed = 0.004;
     let phaseTwoClick = false;
     let switchCheck = false;
-    let cssRenderer;
+    let cssRenderer, sceneCSS;
 
 
 
@@ -367,7 +369,7 @@ function TrackScene( {navBarTrigger} ) {
 
         // loadingScene.fog = new THREE.FogExp2(0x000000, 0.004);
 
-        // loading renderer
+        // renderer
         renderer = new THREE.WebGLRenderer({ antialias:true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         // old setSize arguments: window.innerWidth, window.innerHeight
@@ -376,6 +378,14 @@ function TrackScene( {navBarTrigger} ) {
         mountRef.current.appendChild(renderer.domElement);
         // old code before react: document.body.appendChild(renderer.domElement);
         renderRef.current = renderer;
+
+        // css2d renderer
+        cssRenderer = new CSS2DRenderer();
+        cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        cssRef.current.appendChild(cssRenderer.domElement);
+        cssRenderRef.current = cssRenderer;
+
+        sceneCSS = new THREE.Scene();
 
         // low quality version of background
         loadingScene.background = new THREE.Color(0x0a0a1a);
@@ -469,10 +479,10 @@ function TrackScene( {navBarTrigger} ) {
         scene.add(botPlane);
 
         // css2d renderer
-        const cssRenderer = new CSS2DRenderer();
-        cssRenderer.setSize(window.innerWidth, window.innerHeight);
-        mountRef.current.appendChild(cssRenderer.domElement);
-        cssRenderRef.current = cssRenderer;
+        // const cssRenderer = new CSS2DRenderer();
+        // cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        // mountRef.current.appendChild(cssRenderer.domElement);
+        // cssRenderRef.current = cssRenderer;
 
         // navbar
         const newNavbar = Navbar();
@@ -501,6 +511,7 @@ function TrackScene( {navBarTrigger} ) {
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
+        cssRenderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     // on click for camera animation
@@ -603,8 +614,8 @@ function TrackScene( {navBarTrigger} ) {
             //return;
         } else {
             updateCamera();
+            composer.render(scene, camera);
             cssRenderer.render(scene, camera);
-            composer.render();
         }     
     }
 
@@ -649,8 +660,28 @@ function TrackScene( {navBarTrigger} ) {
 
     }, []);
 
-    return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
-         
+    //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
+    return (
+        <div style={{ width: '100%', height: '100vh',  position: 'relative'}}>
+            <div
+                id="container-track"
+                ref={mountRef}
+                style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+            />
+            <div
+                id="container-css"
+                ref={cssRef}
+                style = {{
+                    width: '100%',
+                    height: '100%',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    pointEvents: 'none'
+                }}
+            />
+        </div>
+    );    
 
 }
 
