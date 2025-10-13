@@ -485,11 +485,12 @@ function TrackScene( {navBarTrigger} ) {
         // cssRenderRef.current = cssRenderer;
 
         // navbar
-        const newNavbar = Navbar();
-        const navbarObj = new CSS2DObject(newNavbar);
-        navbarObj.position.set(0, 5, 15);
-        scene.add(navbarObj);
-
+        if (camPhase === 3) {
+            const newNavbar = Navbar();
+            const navbarObj = new CSS2DObject(newNavbar);
+            navbarObj.position.set(0, 5, 15);
+            scene.add(navbarObj);
+        }
         // postprocessing w/ bloom
         const renderScene = new RenderPass(scene, camera);
         const bloomPass = new UnrealBloomPass(
