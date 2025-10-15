@@ -19,16 +19,16 @@ function App() {
     <>
       <section id="home">
         <TrackScene navBarTrigger={handleNavTrigger} />
-        {showNavbar && <Navbar visible={showNavbar} />}
+        {/* {showNavbar && <Navbar visible={showNavbar} />} */}
       </section>
-      <section id="bio">
+      {/* <section id="bio">
         <h2>Bio</h2>
         <p>Some info about you here.</p>
       </section>
       <section id="projects">
         <h2>Projects</h2>
         <p>Some project info here.</p>
-      </section>
+      </section> */}
     </>
   );
 }

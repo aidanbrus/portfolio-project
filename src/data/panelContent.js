@@ -25,3 +25,28 @@ export const PanelContent = {
     ch3p2r: "A graph or two showing example outputs from the checking process.",
     final: "Thank you and for more info click here, here and here."
 };
+
+export const AdContent = {
+    intro: "Bottled Water by Norris",
+    model1l: "Fresh French Piastris",
+    model1r: "Super Max Energy Drinks",
+    model2l: "Fresh Bananas from Leclerc",
+    model2r: "F1 Race preditctions - Best Site for your Predictions",
+    model3l: "Don't use this for gambling purposes.",
+    model3r: "Bottled Water by Norris",
+    model4l: "Super Max Energy Drinks",
+    model4r: "Fresh French Piastris",
+    chapter2: "F1 Race preditctions - Best Site for your Predictions",
+    ch2p2l: "Fresh Bananas from Leclerc",
+    ch2p2r: "Don't use this for gambling purposes.",
+    ch2p2l: "Super Max Energy Drinks",
+    ch2p2r: "Bottled Water by Norris",
+    chp2p3l: "F1 Race preditctions - Best Site for your Predictions",
+    ch2p3r: "Fresh French Piastris",
+    chapter3: "Don't use this for gambling purposes.",
+    ch3p1l: "Fresh Bananas from Leclerc",
+    ch3p1r: "Super Max Energy Drinks",
+    ch3p2l: "Bottled Water by Norris",
+    ch3p2r: "Fresh French Piastris",
+    final: "Thank you and for more info click here, here and here."
+};

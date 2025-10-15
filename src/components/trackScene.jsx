@@ -22,6 +22,7 @@ function TrackScene( {navBarTrigger} ) {
   const animationRef = useRef(null);
   const cssRenderRef = useRef(null);
   const cssRef = useRef(null);
+  const camDist = useRef(0);
 
   useEffect(() => {
     //if (!mountRef.current) return;
@@ -30,7 +31,7 @@ function TrackScene( {navBarTrigger} ) {
     let curve;
     let loadingScene, loadAnimID, tracer, manager, Loadtrack, elapsed;
     let mirror, track, botPlane;
-    let camDist;
+    //let camDist;
     let loadComplete = false;
     let tracerT = 0;
     let speed = 0.25;
@@ -485,12 +486,13 @@ function TrackScene( {navBarTrigger} ) {
         // cssRenderRef.current = cssRenderer;
 
         // navbar
-        if (camPhase === 3) {
-            const newNavbar = Navbar();
-            const navbarObj = new CSS2DObject(newNavbar);
-            navbarObj.position.set(0, 5, 15);
-            scene.add(navbarObj);
-        }
+        // if (camPhase === 3) {
+        //     const newNavbar = Navbar();
+        //     const navbarObj = new CSS2DObject(newNavbar);
+        //     navbarObj.position.set(0, 5, 15);
+        //     scene.add(navbarObj);
+        // }
+
         // postprocessing w/ bloom
         const renderScene = new RenderPass(scene, camera);
         const bloomPass = new UnrealBloomPass(
@@ -521,15 +523,17 @@ function TrackScene( {navBarTrigger} ) {
     });
 
     // tracking scrolling for main animation
-    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-    window.addEventListener('scroll', () => {
-        const scrollY = window.scrollY;
+    const scrollContainer = document.getElementById('container-scroll');
 
-        // 3. Normalize (0 at top, 1 at bottom)
-        camDist = scrollY / scrollableHeight;
-    });
+    const trackScroll = () => {
+        const scrollY = scrollContainer.scrollTop;
+        const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        camDist.current = scrollY/scrollHeight; // can scale how far scroll goes
+    };
 
-    function updateCamera(camDist) {
+    scrollContainer.addEventListener('scroll',trackScroll);
+
+    function updateCamera() {
         if (camPhase == 1.0){
             // transition from loading camera spot to initial main spot
             setTimeout(() => {
@@ -550,7 +554,6 @@ function TrackScene( {navBarTrigger} ) {
                 camProgress2 = 1;
                 camPhase = 3.0; // move to next phase
                 // console.log("Triggering navbar, camPhase =", camPhase);
-                console.log("Triggering navbar, camPhase =", camPhase);
                 navBarTrigger(camPhase);
             }
             let easing = easeIOCubic(camProgress2);
@@ -564,15 +567,22 @@ function TrackScene( {navBarTrigger} ) {
 
         } else if (camPhase == 3.0) {
             // once user is on track
-            // const position = curve.getPointAt(camDist); // camera position along curve
-            const tangent = curve.getTangentAt(camDist); // direction of motion
+            const tCam3 = camDist.current;
+            const posCam3 = curve.getPointAt(tCam3);
+            const tanCam = curve.getTangentAt(tCam3);
+            posCam3.z = posCam3.z + 3;
+            
 
-            camera.position.copy(curve.getPointAt(camDist));
+            camera.position.copy(posCam3);
+            
+            console.log('posCam3 is',posCam3);
+            console.log('tanCam is', tanCam);
 
-            // make camera look forward along the track
-            const lookAtPoint = position.clone().add(tangent);
-            camera.lookAt(lookAtPoint);
+            // adjust camera direction
+            const camDirection = posCam3.clone().add(tanCam);
+            camera.lookAt(camDirection);
 
+            console.log('camDirection is', camDirection);
         };
     };
 
@@ -657,30 +667,67 @@ function TrackScene( {navBarTrigger} ) {
             cssRenderRef.current.domElement.remove();
         }
 
+        scrollContainer.removeEventListener('scroll',trackScroll)
     };
 
     }, []);
 
     //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
     return (
-        <div style={{ width: '100%', height: '100vh',  position: 'relative'}}>
+        // <div style={{ width: '100%', height: '100vh',  position: 'relative'}}>
+        //     <div
+        //         id="container-track"
+        //         ref={mountRef}
+        //         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+        //     />
+        //     <div
+        //         id="container-css"
+        //         ref={cssRef}
+        //         style = {{
+        //             width: '100%',
+        //             height: '100%',
+        //             position: 'absolute',
+        //             top: 0,
+        //             left: 0,
+        //             pointEvents: 'none'
+        //         }}
+        //     />
+        // </div>
+        <div id="container-scroll" style={{width: "100%", height:"100vh", overflowY:"scroll"}}>
             <div
-                id="container-track"
-                ref={mountRef}
-                style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
-            />
-            <div
-                id="container-css"
-                ref={cssRef}
-                style = {{
-                    width: '100%',
-                    height: '100%',
-                    position: 'absolute',
+                style={{
+                    postion:"sticky",
                     top: 0,
                     left: 0,
-                    pointEvents: 'none'
+                    width: "100%",
+                    height: "100vh",
                 }}
-            />
+            >
+                <div
+                    id="container-track"
+                    ref={mountRef}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        position: "absolute",
+                        top: 0,
+                        left:0,
+                    }}
+                />
+                <div
+                    id="container-css"
+                    ref={cssRef}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        pointerEvents: "none",
+                    }}
+                />
+            </div>
+            <div style={{height: "5000px"}}/>
         </div>
     );    
 

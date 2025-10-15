@@ -31,13 +31,12 @@ import '../index.css';
 
 // new navbar code for css2d objects
 export default function Navbar() {
-  const div = document.createElement('div');
-  div.className = 'navbar';
-  div.innerHTML = `
-    <nav>
-      <a href="#">Bio</a> |
-      <a href="#">Projects</a>
-    </nav>  
-  `;
-  return div;
+  return(
+    <div className="navbar">
+      <nav>
+        <a href="#">Bio</a> |
+        <a href="#">Projects</a>
+      </nav>
+    </div>
+  );
 }
