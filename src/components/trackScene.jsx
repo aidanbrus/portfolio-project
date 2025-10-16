@@ -46,7 +46,8 @@ function TrackScene( {navBarTrigger} ) {
     let phaseTwoClick = false;
     let switchCheck = false;
     let cssRenderer, sceneCSS;
-
+    let storedRotation;
+    let camFrames = [];
 
 
     function createTrack() {
@@ -55,9 +56,7 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( 0, 5, 0 ), // almost actual start line 
             new THREE.Vector3( -76, 5, 0 ), // turn 1 start
             new THREE.Vector3( -78.5, 5.5, 0),
-            // new THREE.Vector3( -78.5, 5.5, 0),
             new THREE.Vector3( -79, 6, 0),
-            // new THREE.Vector3( -79, 8, 0),
             new THREE.Vector3( -78, 9, 0),
             new THREE.Vector3( -76, 11, 0 ), // turn 1 end
             new THREE.Vector3(  -66, 17.5, 0), // turn 1a start
@@ -69,7 +68,6 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( -6, 25, -5),
             new THREE.Vector3( -6.3, 27, -5),
             new THREE.Vector3( -7, 28, -5),
-            //new THREE.Vector3( -8.3, 28.9, -9.75),
             new THREE.Vector3( -8, 29, -5),
             new THREE.Vector3( -8.5, 29.25, -5 ),
             new THREE.Vector3( -9, 29.5, -5), // turn 2 end
@@ -130,8 +128,6 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( 52, 5, 0), // turn 14 end
             new THREE.Vector3( 51.5, 5, 0),
             new THREE.Vector3( 51, 5, 0),
-            // new THREE.Vector3( 30, 5, 0),
-            // new THREE.Vector3( 25, 5, 0),
             new THREE.Vector3( 0, 5, 0)
         ] )
 
@@ -148,32 +144,32 @@ function TrackScene( {navBarTrigger} ) {
 
         const up = new THREE.Vector3(0, 0, 1); // fixed up direction
 
-        function getAdaptivePoints(curve, baseDivisions = 750, maxExtra = 8) {
+        function getAdaptivePoints(curve, baseDivisions, maxExtra) { // add = 750,8 here to baseDivisions/maxExtra?
             const points = [];
             
             let prevTangent = null;
             
             for (let i = 0; i <= baseDivisions; i++) {
-            const t = i / baseDivisions;
-            const point = curve.getPoint(t);
-            const tangent = curve.getTangent(t).normalize();
-            
-            if (prevTangent) {
-                // Curvature measure = how much direction changes
-                const angle = Math.acos(Math.min(Math.max(prevTangent.dot(tangent), -1), 1));
+                const t = i / baseDivisions;
+                const point = curve.getPoint(t);
+                const tangent = curve.getTangent(t).normalize();
                 
-                // Map angle to number of extra segments
-                const extra = Math.ceil((angle / Math.PI) * maxExtra);
-                
-                // Add intermediate points if curvature is high
-                for (let j = 1; j <= extra; j++) {
-                const t2 = (i - 1 + j / (extra + 1)) / baseDivisions;
-                points.push(curve.getPoint(t2));
+                if (prevTangent) {
+                    // Curvature measure = how much direction changes
+                    const angle = Math.acos(Math.min(Math.max(prevTangent.dot(tangent), -1), 1));
+                    
+                    // Map angle to number of extra segments
+                    const extra = Math.ceil((angle / Math.PI) * maxExtra);
+                    
+                    // Add intermediate points if curvature is high
+                    for (let j = 1; j <= extra; j++) {
+                        const t2 = (i - 1 + j / (extra + 1)) / baseDivisions;
+                        points.push(curve.getPoint(t2));
+                    }
                 }
-            }
-            
-            points.push(point);
-            prevTangent = tangent;
+                
+                points.push(point);
+                prevTangent = tangent;
             }
             
             return points;
@@ -188,7 +184,7 @@ function TrackScene( {navBarTrigger} ) {
 
         let prevNormal = new THREE.Vector3(1, 0, 0); // starting guess
 
-        const pathPoints = getAdaptivePoints(curve, 200, 8); // base 200, up to 5x more in corners
+        const pathPoints = getAdaptivePoints(curve, 200, 8); // base 200, up to 8x more in corners
 
         for (let i = 0; i < pathPoints.length; i++) {
             const point = pathPoints[i];
@@ -218,18 +214,18 @@ function TrackScene( {navBarTrigger} ) {
             // --- Handle last ring fix ---
             let ringVertices = [];
             if (i === pathPoints.length - 1) {
-            // Force last ring = first ring
-            ringVertices = firstRing.map(v => v.clone());
+                // Force last ring = first ring
+                ringVertices = firstRing.map(v => v.clone());
             } else {
-            // Build normal ring
-            for (let p = 0; p < shape.length; p++) {
-                const sp = shape[p];
-                const vertex = new THREE.Vector3()
-                .addScaledVector(prevNormal, sp.x)
-                .addScaledVector(binormal, sp.y)
-                .add(point);
-                ringVertices.push(vertex);
-            }
+                // Build normal ring
+                for (let p = 0; p < shape.length; p++) {
+                    const sp = shape[p];
+                    const vertex = new THREE.Vector3()
+                    .addScaledVector(prevNormal, sp.x)
+                    .addScaledVector(binormal, sp.y)
+                    .add(point);
+                    ringVertices.push(vertex);
+                }
             }
 
             // Push vertices to buffer
@@ -237,21 +233,24 @@ function TrackScene( {navBarTrigger} ) {
 
             // Save first ring for reuse
             if (i === 0) {
-            firstRing = ringVertices.map(v => v.clone());
-            firstNormal = prevNormal.clone();
-            firstBinormal = binormal.clone();
+                firstRing = ringVertices.map(v => v.clone());
+                firstNormal = prevNormal.clone();
+                firstBinormal = binormal.clone();
             }
 
             // create indices for faces
             if (i > 0) {
-            const base = i * shape.length;
-            const prevBase = (i - 1) * shape.length;
-            for (let p = 0; p < shape.length; p++) {
-                const nextP = (p + 1) % shape.length;
-                indices.push(prevBase + p, base + p, base + nextP);
-                indices.push(prevBase + p, base + nextP, prevBase + nextP);
+                const base = i * shape.length;
+                const prevBase = (i - 1) * shape.length;
+                for (let p = 0; p < shape.length; p++) {
+                    const nextP = (p + 1) % shape.length;
+                    indices.push(prevBase + p, base + p, base + nextP);
+                    indices.push(prevBase + p, base + nextP, prevBase + nextP);
+                }
             }
-            }
+
+            // info for the camera
+            camFrames.push({tangent, prevNormal, binormal, position: point});
         }
 
         // assign vertices to geometry (needs indices, uvs, etc. for full mesh)
@@ -277,7 +276,10 @@ function TrackScene( {navBarTrigger} ) {
         // .MeshLambertMaterial
         // const material = new THREE.MeshPhongMaterial( { color: '#8AC' } );
         const track = new THREE.Mesh( geometry, material ) ;
-        //scene.add( track );
+        
+        // // info for the camera
+        // camFrames.push({tangent, prevNormal, binormal, position: pathPoints.clone()});
+
         return track;
     }
 
@@ -553,7 +555,10 @@ function TrackScene( {navBarTrigger} ) {
             if (camProgress2 > 1) {
                 camProgress2 = 1;
                 camPhase = 3.0; // move to next phase
-                // console.log("Triggering navbar, camPhase =", camPhase);
+                
+                const camEuler2 = new THREE.Euler().setFromQuaternion(camera.quaternion);
+                storedRotation = { x: camEuler2.x, z: camEuler2.z };
+
                 navBarTrigger(camPhase);
             }
             let easing = easeIOCubic(camProgress2);
@@ -567,22 +572,52 @@ function TrackScene( {navBarTrigger} ) {
 
         } else if (camPhase == 3.0) {
             // once user is on track
-            const tCam3 = camDist.current;
-            const posCam3 = curve.getPointAt(tCam3);
-            const tanCam = curve.getTangentAt(tCam3);
-            posCam3.z = posCam3.z + 3;
-            
+            console.log('camFrames array:', camFrames)
+            const camProg = camDist.current;
+            const totalFrames = camFrames.length;
+            const index = Math.floor(camProg * (totalFrames -1));
+            const nextIndex = Math.min(index+1, totalFrames-1);
+            const alpha = (camProg *(totalFrames - 1)) - index;
 
-            camera.position.copy(posCam3);
+            const camPos = camFrames[index].position.clone().lerp(camFrames[nextIndex].position, alpha);
+            const camTan = camFrames[index].tanget.clone().lerp(camFrames[nextIndex].tangent, alpha).normalize();
+            const camNorm = camFrames[index].prevNormal.clone().lerp(camFrames[nextIndex].prevNormal, alpha).normalize();
+            const camBi = camFrames[index].binormal.clone().lerp(camFrames[nextIndex].binormal, alpha).normalize();
+
+            camera.position.copy(camPos);
+
+            const m = new THREE.Matrix4();
+            m.makeBasis(camBi, camNorm, camTan.clone().negate());
+            camera.quaternion.setFromRotationMatrix(m);
+
+            // const tCam3 = camDist.current;
+            // const posCam3 = curve.getPointAt(tCam3);
+            // const tanCam = curve.getTangentAt(tCam3);
+            // posCam3.z = posCam3.z + 3;
             
-            console.log('posCam3 is',posCam3);
-            console.log('tanCam is', tanCam);
+            // camera.position.copy(posCam3);
+            
+            // console.log('posCam3 is',posCam3);
+            // console.log('tanCam is', tanCam);
 
             // adjust camera direction
-            const camDirection = posCam3.clone().add(tanCam);
-            camera.lookAt(camDirection);
+            // const camDirection = posCam3.clone().add(tanCam);
+            // camera.lookAt(camDirection);
 
-            console.log('camDirection is', camDirection);
+            // const camEuler3 = new THREE.Euler().setFromQuaternion(camera.quaternion)
+            
+            // camEuler3.x = storedRotation.x;
+            // camEuler3.z = storedRotation.z;
+            // camera.quaternion.setFromEuler(camEuler3);
+
+            //camera.lookAt(camDirection);
+            // if (finalCamRotate) camera.rotation.copy(finalCamRotate);
+
+            //console.log('camDirection is', camDirection);
+            //camera.rotation.y = Math.PI/2;
+            //camera.rotation.z = Math.PI/2;
+
+            //console.log('camDirection is', camDirection);
         };
     };
 
@@ -727,7 +762,7 @@ function TrackScene( {navBarTrigger} ) {
                     }}
                 />
             </div>
-            <div style={{height: "5000px"}}/>
+            <div style={{height: "4000px"}}/>
         </div>
     );    
 
