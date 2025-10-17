@@ -557,7 +557,7 @@ function TrackScene( {navBarTrigger} ) {
                 camPhase = 3.0; // move to next phase
                 
                 const camEuler2 = new THREE.Euler().setFromQuaternion(camera.quaternion);
-                storedRotation = { x: camEuler2.x, z: camEuler2.z };
+                storedRotation = { x: camEuler2.x, y: camEuler2.y, z: camEuler2.z };
 
                 navBarTrigger(camPhase);
             }
@@ -572,7 +572,6 @@ function TrackScene( {navBarTrigger} ) {
 
         } else if (camPhase == 3.0) {
             // once user is on track
-            console.log('camFrames array:', camFrames)
             const camProg = camDist.current;
             const totalFrames = camFrames.length;
             const index = Math.floor(camProg * (totalFrames -1));
@@ -580,15 +579,45 @@ function TrackScene( {navBarTrigger} ) {
             const alpha = (camProg *(totalFrames - 1)) - index;
 
             const camPos = camFrames[index].position.clone().lerp(camFrames[nextIndex].position, alpha);
-            const camTan = camFrames[index].tanget.clone().lerp(camFrames[nextIndex].tangent, alpha).normalize();
+            camPos.z = camPos.z + 3;
+            const camTan = camFrames[index].tangent.clone().lerp(camFrames[nextIndex].tangent, alpha).normalize();
             const camNorm = camFrames[index].prevNormal.clone().lerp(camFrames[nextIndex].prevNormal, alpha).normalize();
             const camBi = camFrames[index].binormal.clone().lerp(camFrames[nextIndex].binormal, alpha).normalize();
 
             camera.position.copy(camPos);
 
-            const m = new THREE.Matrix4();
-            m.makeBasis(camBi, camNorm, camTan.clone().negate());
-            camera.quaternion.setFromRotationMatrix(m);
+            const quatTan = camTan.clone();
+            quatTan.y = 0;
+            if (quatTan.lengthSq() < 1e-6) return;
+            quatTan.normalize();
+
+            const camYaw3 = Math.atan2(quatTan.x, quatTan.y);
+            // console.log("flatTan:", quatTan, "camYaw3:", camYaw3);
+            const quatYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1), camYaw3);
+            console.log("quatYaw quaternion:", quatYaw);
+
+            const eulerCam3 = new THREE.Euler().setFromQuaternion(storedRotation, "ZXY");
+            eulerCam3.y = 0;
+            
+            const pitRollQuat = new THREE.Quaternion().setFromEuler(eulerCam3);
+            console.log('pitRollQuat quaternion:', pitRollQuat)
+
+            camera.quaternion.copy(quatYaw).multiply(pitRollQuat);
+            // camera.quaternion.copy(pitRollQuat).multiply(quatYaw);
+
+            // const dir = new THREE.Vector3();
+            // camera.getWorldDirection(dir);
+            // console.log('camera direction: ',dir)
+
+
+            // const m = new THREE.Matrix4();
+            // m.makeBasis(camBi, camNorm, camTan.clone().negate());
+            // camera.quaternion.setFromRotationMatrix(m);
+
+            // const camEuler3 = new THREE.Euler().setFromQuaternion(camera.quaternion, "XYZ");
+            // camEuler3.x = storedRotation.x;
+            // camEuler3.z = storedRotation.z;
+            // camera.quaternion.setFromEuler(camEuler3);
 
             // const tCam3 = camDist.current;
             // const posCam3 = curve.getPointAt(tCam3);
