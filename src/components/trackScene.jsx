@@ -557,7 +557,8 @@ function TrackScene( {navBarTrigger} ) {
                 camPhase = 3.0; // move to next phase
                 
                 const camEuler2 = new THREE.Euler().setFromQuaternion(camera.quaternion);
-                storedRotation = { x: camEuler2.x, y: camEuler2.y, z: camEuler2.z };
+                storedRotation = new THREE.Quaternion().setFromEuler(camEuler2);
+                storedRotation.normalize();
 
                 navBarTrigger(camPhase);
             }
@@ -593,14 +594,20 @@ function TrackScene( {navBarTrigger} ) {
 
             const camYaw3 = Math.atan2(quatTan.x, quatTan.y);
             // console.log("flatTan:", quatTan, "camYaw3:", camYaw3);
-            const quatYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1), camYaw3);
-            console.log("quatYaw quaternion:", quatYaw);
+            const quatYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,-1), camYaw3);
+            quatYaw.normalize();
+            // console.log("quatYaw quaternion:", quatYaw);
 
-            const eulerCam3 = new THREE.Euler().setFromQuaternion(storedRotation, "ZXY");
+            //console.log(storedRotation);
+            // storedRotation.normalize();
+            const eulerCam3 = new THREE.Euler().setFromQuaternion(storedRotation, "XYZ");
+            //eulerCam3.x = -eulerCam3.x;
             eulerCam3.y = 0;
+            eulerCam3.z = -eulerCam3.z;
             
+            // pitRollQuat is returning NaN instead of values
             const pitRollQuat = new THREE.Quaternion().setFromEuler(eulerCam3);
-            console.log('pitRollQuat quaternion:', pitRollQuat)
+            // console.log('pitRollQuat quaternion:', pitRollQuat)
 
             camera.quaternion.copy(quatYaw).multiply(pitRollQuat);
             // camera.quaternion.copy(pitRollQuat).multiply(quatYaw);
