@@ -48,6 +48,8 @@ function TrackScene( {navBarTrigger} ) {
     let cssRenderer, sceneCSS;
     let storedRotation;
     let camFrames = [];
+    let lasT, newDelta;
+    let curveWeights = [];
 
 
     function createTrack() {
@@ -250,7 +252,17 @@ function TrackScene( {navBarTrigger} ) {
             }
 
             // info for the camera
-            camFrames.push({tangent, prevNormal, binormal, position: point});
+            // camFrames.push({tangent, prevNormal, binormal, position: point});
+        };
+
+        // sampling track for camera purposes
+        const camSamples = 1000;
+        for (let i=0; i<= camSamples; i++) {
+            const t = i/camSamples;
+            const pos = curve.getPointAt(t);
+            const tan = curve.getTangentAt(t);
+            tan.normalize();
+            camFrames.push({pos, tan})
         }
 
         // assign vertices to geometry (needs indices, uvs, etc. for full mesh)
@@ -404,45 +416,8 @@ function TrackScene( {navBarTrigger} ) {
         );
         loadingScene.add(tracer);
 
-        // loading manager
-        // manager = new THREE.LoadingManager();
-        // manager.onLoad = handleLoadComplete();
     }
 
-    // function animationLoader() {
-    //     loadAnimID = requestAnimationFrame(animationLoader);
-
-    //     // tracer animation
-    //     const now = performance.now();
-    //     const delta = (now - lastFrameTime) / 1000; // seconds
-    //     lastFrameTime = now;
-
-    //     tracerT = (tracerT + speed * delta) % 1;
-    //     tracer.position.copy(curve.getPointAt(tracerT));
-    //     tracer.position.y += 0.5;
-
-    //     renderer.render(loadingScene, camera);
-    // }
-
-    // function handleLoadComplete() {
-    //     const now = performance.now();
-    //     elapsed = now - loadStartTime;
-
-    //     if (elapsed > 4000 && tracerT < 0.01) {
-    //         cancelAnimationFrame(loadAnimID);
-    //         camPhase = 1.0;
-    //         initMainScene();
-    //         animate();
-    //     } else {
-    //         const remaining = 4000 - elapsed;
-    //         setTimeout(() => {
-    //         cancelAnimationFrame(loadAnimID);
-    //         camPhase = 1.0;
-    //         initMainScene();
-    //         animate();
-    //         }, remaining);
-    //     };
-    // }
 
     function handleLoadComplete() {
         const now = performance.now();
@@ -530,12 +505,27 @@ function TrackScene( {navBarTrigger} ) {
     const trackScroll = () => {
         const scrollY = scrollContainer.scrollTop;
         const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-        camDist.current = scrollY/scrollHeight; // can scale how far scroll goes
+        //camDist.current = scrollY/scrollHeight; // can scale how far scroll goes
+        const scrollProgress = scrollY/scrollHeight;
+        camDist.current = scrollMap(scrollProgress)
     };
 
     scrollContainer.addEventListener('scroll',trackScroll);
 
-    function updateCamera() {
+    function scrollMap(scrollProgress) {
+        let i=0;
+        while (i<curveWeights.length-1 && scrollProgress > curveWeights[i]) {
+            i++;
+        }
+
+        const prev = curveWeights[i-1] ?? 0;
+        const next = curveWeights[i];
+        const t = (scrollProgress - prev)/ (next/prev);
+
+        return (i+t)/(camFrames.length-1);
+    }
+
+    function updateCamera(newDelta) {
         if (camPhase == 1.0){
             // transition from loading camera spot to initial main spot
             setTimeout(() => {
@@ -573,87 +563,54 @@ function TrackScene( {navBarTrigger} ) {
 
         } else if (camPhase == 3.0) {
             // once user is on track
+            //console.log(camDist);
             const camProg = camDist.current;
             const totalFrames = camFrames.length;
             const index = Math.floor(camProg * (totalFrames -1));
             const nextIndex = Math.min(index+1, totalFrames-1);
+            const prevIndex = Math.max(index-1, 0);
             const alpha = (camProg *(totalFrames - 1)) - index;
 
-            const camPos = camFrames[index].position.clone().lerp(camFrames[nextIndex].position, alpha);
+            const camPos = camFrames[index].pos.clone().lerp(camFrames[nextIndex].pos, alpha);
             camPos.z = camPos.z + 3;
-            const camTan = camFrames[index].tangent.clone().lerp(camFrames[nextIndex].tangent, alpha).normalize();
-            const camNorm = camFrames[index].prevNormal.clone().lerp(camFrames[nextIndex].prevNormal, alpha).normalize();
-            const camBi = camFrames[index].binormal.clone().lerp(camFrames[nextIndex].binormal, alpha).normalize();
+            const camTan = camFrames[index].tan.clone().lerp(camFrames[nextIndex].tan, alpha).normalize();
+
+            // variable speeed, slower corners and quicker straights
+            var totalWeight = 0;
+            
+            for (let i =1; i< camFrames.length-1; i++) {
+                const prevTan = camFrames[i-1].tan;
+                const nextTan = camFrames[i+1].tan;
+                const curvature = prevTan.clone().sub(nextTan).length();
+
+                const weight = 1/(1+3*curvature);
+                totalWeight += weight;
+                curveWeights.push(weight);
+            }
+
+            for (let i=0; i<curveWeights.length; i++) {
+                curveWeights[i] /= totalWeight;
+            }
 
             camera.position.copy(camPos);
 
+            //ensuring that the camera is he right orientation and direction
             const quatTan = camTan.clone();
-            quatTan.y = 0;
+            quatTan.z = 0; 
             if (quatTan.lengthSq() < 1e-6) return;
             quatTan.normalize();
 
             const camYaw3 = Math.atan2(quatTan.x, quatTan.y);
-            // console.log("flatTan:", quatTan, "camYaw3:", camYaw3);
             const quatYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,-1), camYaw3);
             quatYaw.normalize();
-            // console.log("quatYaw quaternion:", quatYaw);
 
-            //console.log(storedRotation);
-            // storedRotation.normalize();
             const eulerCam3 = new THREE.Euler().setFromQuaternion(storedRotation, "XYZ");
-            //eulerCam3.x = -eulerCam3.x;
             eulerCam3.y = 0;
             eulerCam3.z = -eulerCam3.z;
             
-            // pitRollQuat is returning NaN instead of values
             const pitRollQuat = new THREE.Quaternion().setFromEuler(eulerCam3);
-            // console.log('pitRollQuat quaternion:', pitRollQuat)
-
             camera.quaternion.copy(quatYaw).multiply(pitRollQuat);
-            // camera.quaternion.copy(pitRollQuat).multiply(quatYaw);
 
-            // const dir = new THREE.Vector3();
-            // camera.getWorldDirection(dir);
-            // console.log('camera direction: ',dir)
-
-
-            // const m = new THREE.Matrix4();
-            // m.makeBasis(camBi, camNorm, camTan.clone().negate());
-            // camera.quaternion.setFromRotationMatrix(m);
-
-            // const camEuler3 = new THREE.Euler().setFromQuaternion(camera.quaternion, "XYZ");
-            // camEuler3.x = storedRotation.x;
-            // camEuler3.z = storedRotation.z;
-            // camera.quaternion.setFromEuler(camEuler3);
-
-            // const tCam3 = camDist.current;
-            // const posCam3 = curve.getPointAt(tCam3);
-            // const tanCam = curve.getTangentAt(tCam3);
-            // posCam3.z = posCam3.z + 3;
-            
-            // camera.position.copy(posCam3);
-            
-            // console.log('posCam3 is',posCam3);
-            // console.log('tanCam is', tanCam);
-
-            // adjust camera direction
-            // const camDirection = posCam3.clone().add(tanCam);
-            // camera.lookAt(camDirection);
-
-            // const camEuler3 = new THREE.Euler().setFromQuaternion(camera.quaternion)
-            
-            // camEuler3.x = storedRotation.x;
-            // camEuler3.z = storedRotation.z;
-            // camera.quaternion.setFromEuler(camEuler3);
-
-            //camera.lookAt(camDirection);
-            // if (finalCamRotate) camera.rotation.copy(finalCamRotate);
-
-            //console.log('camDirection is', camDirection);
-            //camera.rotation.y = Math.PI/2;
-            //camera.rotation.z = Math.PI/2;
-
-            //console.log('camDirection is', camDirection);
         };
     };
 
@@ -664,12 +621,6 @@ function TrackScene( {navBarTrigger} ) {
             : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
-    // function animate() {
-    //     requestAnimationFrame(animate);
-    //     updateCamera();
-
-    //     composer.render();
-    // }
 
     function animate() {
         animationRef.current = requestAnimationFrame(animate);
@@ -692,10 +643,16 @@ function TrackScene( {navBarTrigger} ) {
             if (loadComplete === true) {
                 switchCheck = true;
                 initMainScene();
+                lasT = now;
             }
             //return;
         } else {
-            updateCamera();
+            const curT = performance.now();
+            const newDelta = (curT - lasT)/1000;
+            lasT = curT;
+
+            updateCamera(newDelta);
+
             composer.render(scene, camera);
             cssRenderer.render(scene, camera);
         }     
@@ -798,7 +755,7 @@ function TrackScene( {navBarTrigger} ) {
                     }}
                 />
             </div>
-            <div style={{height: "4000px"}}/>
+            <div style={{height: "15000px"}}/>
         </div>
     );    
 
