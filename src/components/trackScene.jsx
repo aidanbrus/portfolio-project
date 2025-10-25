@@ -49,7 +49,10 @@ function TrackScene( {navBarTrigger} ) {
     let storedRotation;
     let camFrames = [];
     let lasT, newDelta;
-    let curveWeights = [];
+    let trackWeights = [];
+    let loadingFlag = true;
+    // let curveWeights = [];
+    // let normWeights = [];
 
 
     function createTrack() {
@@ -62,8 +65,9 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( -78, 9, 0),
             new THREE.Vector3( -76, 11, 0 ), // turn 1 end
             new THREE.Vector3(  -66, 17.5, 0), // turn 1a start
-            new THREE.Vector3( -61, 19, 0),
+            //new THREE.Vector3( -61, 19.25, 0),
             new THREE.Vector3( -58, 20, 0), // turn 1a end
+            //new THREE.Vector3( -56, 20, 0),
             new THREE.Vector3( -10, 20, -5), // turn 2 start
             new THREE.Vector3( -8, 21, -5),
             new THREE.Vector3( -7, 22, -5),
@@ -90,9 +94,9 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( -67, 136, -1.2), 
             new THREE.Vector3( -63.5, 139, -0.8), 
             new THREE.Vector3( -60, 140, -0.4), // turn 5 end
-            new THREE.Vector3( -11, 136.5, 0), // turn 6 start
-            new THREE.Vector3( -10, 136, 0), 
-            new THREE.Vector3( -10, 135, 0), // turn 6 end
+            new THREE.Vector3( -15, 135.5, 0), // turn 6 start
+            new THREE.Vector3( -13, 135, 0), 
+            new THREE.Vector3( -11, 134, 0), // turn 6 end
             new THREE.Vector3( -10, 129, 0), // turn 7 start
             new THREE.Vector3( -9.5, 127.5, 0),
             new THREE.Vector3( -8, 126, 0),// turn 7 end
@@ -111,7 +115,7 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( 60.5, 31, 0), /// turn 12 start
             new THREE.Vector3( 60, 29, 0), 
             new THREE.Vector3( 58.5, 28.5, 0), // turn 12 end
-            new THREE.Vector3( 37, 33, 0), // turn 12a
+            new THREE.Vector3( 41, 33, 0), // turn 12a
             new THREE.Vector3( 29, 33, 0), // turn 13 start
             new THREE.Vector3( 26, 32, 0),
             new THREE.Vector3( 23.5, 28.5, 0),
@@ -133,7 +137,7 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( 0, 5, 0)
         ] )
 
-        const points = curve.getPoints( 100 );
+        // const points = curve.getPoints( 100 );
 
         const thickTrack = 3, widthTrack = 3;
 
@@ -256,14 +260,22 @@ function TrackScene( {navBarTrigger} ) {
         };
 
         // sampling track for camera purposes
-        const camSamples = 1000;
-        for (let i=0; i<= camSamples; i++) {
-            const t = i/camSamples;
-            const pos = curve.getPointAt(t);
-            const tan = curve.getTangentAt(t);
-            tan.normalize();
-            camFrames.push({pos, tan})
-        }
+        if (loadingFlag){
+            const camSamples = 1000;
+            for (let i=0; i<= camSamples; i++) {
+                const t = i/camSamples;
+                const pos = curve.getPointAt(t);
+                const tan = curve.getTangentAt(t);
+                tan.normalize();
+                camFrames.push({pos, tan})
+            }
+        };
+
+        // prep for camera animation in phase 3
+        if (loadingFlag) {
+            trackWeights = compWeight(camFrames);
+        };
+        
 
         // assign vertices to geometry (needs indices, uvs, etc. for full mesh)
         const geometry = new THREE.BufferGeometry();
@@ -502,30 +514,63 @@ function TrackScene( {navBarTrigger} ) {
     // tracking scrolling for main animation
     const scrollContainer = document.getElementById('container-scroll');
 
+    // const trackScroll = () => {
     const trackScroll = () => {
         const scrollY = scrollContainer.scrollTop;
         const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
         //camDist.current = scrollY/scrollHeight; // can scale how far scroll goes
         const scrollProgress = scrollY/scrollHeight;
-        camDist.current = scrollMap(scrollProgress)
+        camDist.current = scrollMap(scrollProgress, trackWeights);
+        //console.log(trackWeights);
+        // console.log(camDist);
     };
 
     scrollContainer.addEventListener('scroll',trackScroll);
 
-    function scrollMap(scrollProgress) {
+    function compWeight(camFrames) {
+        let totalWeight = 0;
+        const curveWeights = [];
+
+        for (let j=1; j< camFrames.length-1; j++) {
+            const prevTan = camFrames[j-1].tan;
+            const nextTan = camFrames[j+1].tan;
+            const curvature = prevTan.clone().sub(nextTan).length();
+
+            const weight = 1/(1+0.01*curvature);
+            totalWeight += weight;
+            curveWeights.push(weight);
+        }
+        
+        let cumulative = 0;
+        const normWeights = [0];
+
+        for (let j=0; j<curveWeights.length; j++) {
+            cumulative += curveWeights[j] / totalWeight;
+            normWeights.push(cumulative)
+        }
+        return normWeights
+    }
+
+    function scrollMap(scrollProgress, trackWeights) {
+        //console.log(normWeights);
         let i=0;
-        while (i<curveWeights.length-1 && scrollProgress > curveWeights[i]) {
+        while (i<trackWeights.length-1 && scrollProgress > trackWeights[i]) {
             i++;
         }
+        console.log(trackWeights);
+        const prev = trackWeights[i-1] ?? 0;
+        const next = trackWeights[i];
+        //const t = (scrollProgress - prev)/(next - prev);
 
-        const prev = curveWeights[i-1] ?? 0;
-        const next = curveWeights[i];
-        const t = (scrollProgress - prev)/ (next/prev);
+        const denom = next - prev;
+        const epsilon = 1e-8; // small threshold to avoid divide-by-zero
+
+        const t = Math.abs(denom) < epsilon ? 0 : (scrollProgress - prev) / denom;
 
         return (i+t)/(camFrames.length-1);
     }
 
-    function updateCamera(newDelta) {
+    function updateCamera(camFrames) {
         if (camPhase == 1.0){
             // transition from loading camera spot to initial main spot
             setTimeout(() => {
@@ -570,31 +615,15 @@ function TrackScene( {navBarTrigger} ) {
             const nextIndex = Math.min(index+1, totalFrames-1);
             const prevIndex = Math.max(index-1, 0);
             const alpha = (camProg *(totalFrames - 1)) - index;
+            console.log(camProg);
 
             const camPos = camFrames[index].pos.clone().lerp(camFrames[nextIndex].pos, alpha);
             camPos.z = camPos.z + 3;
             const camTan = camFrames[index].tan.clone().lerp(camFrames[nextIndex].tan, alpha).normalize();
 
-            // variable speeed, slower corners and quicker straights
-            var totalWeight = 0;
-            
-            for (let i =1; i< camFrames.length-1; i++) {
-                const prevTan = camFrames[i-1].tan;
-                const nextTan = camFrames[i+1].tan;
-                const curvature = prevTan.clone().sub(nextTan).length();
-
-                const weight = 1/(1+3*curvature);
-                totalWeight += weight;
-                curveWeights.push(weight);
-            }
-
-            for (let i=0; i<curveWeights.length; i++) {
-                curveWeights[i] /= totalWeight;
-            }
-
             camera.position.copy(camPos);
 
-            //ensuring that the camera is he right orientation and direction
+            //ensuring that the camera is the right orientation and direction
             const quatTan = camTan.clone();
             quatTan.z = 0; 
             if (quatTan.lengthSq() < 1e-6) return;
@@ -642,16 +671,11 @@ function TrackScene( {navBarTrigger} ) {
 
             if (loadComplete === true) {
                 switchCheck = true;
+                loadingFlag = false;
                 initMainScene();
-                lasT = now;
             }
-            //return;
         } else {
-            const curT = performance.now();
-            const newDelta = (curT - lasT)/1000;
-            lasT = curT;
-
-            updateCamera(newDelta);
+            updateCamera(camFrames);
 
             composer.render(scene, camera);
             cssRenderer.render(scene, camera);
@@ -755,7 +779,7 @@ function TrackScene( {navBarTrigger} ) {
                     }}
                 />
             </div>
-            <div style={{height: "15000px"}}/>
+            <div style={{height: "13000px"}}/>
         </div>
     );    
 
