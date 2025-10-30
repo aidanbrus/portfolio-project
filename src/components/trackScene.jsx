@@ -60,25 +60,20 @@ function TrackScene( {navBarTrigger} ) {
         curve = new THREE.CatmullRomCurve3( [
             new THREE.Vector3( 0, 5, 0 ), // almost actual start line 
             new THREE.Vector3( -76, 5, 0 ), // turn 1 start
-            new THREE.Vector3( -78.5, 5.5, 0),
-            new THREE.Vector3( -79, 6, 0),
-            new THREE.Vector3( -78, 9, 0),
-            new THREE.Vector3( -76, 11, 0 ), // turn 1 end
-            new THREE.Vector3(  -66, 17.5, 0), // turn 1a start
-            //new THREE.Vector3( -61, 19.25, 0),
+            new THREE.Vector3( -77.5, 6, 0), 
+            new THREE.Vector3( -77.8, 7, 0),
+            new THREE.Vector3( -77.5, 8.4, 0),
+            new THREE.Vector3( -73, 13.5, 0 ), // turn 1 end
+            new THREE.Vector3( -66, 17.5, 0), // turn 1a start
             new THREE.Vector3( -58, 20, 0), // turn 1a end
-            //new THREE.Vector3( -56, 20, 0),
             new THREE.Vector3( -10, 20, -5), // turn 2 start
-            new THREE.Vector3( -8, 21, -5),
-            new THREE.Vector3( -7, 22, -5),
-            new THREE.Vector3( -6, 25, -5),
-            new THREE.Vector3( -6.3, 27, -5),
-            new THREE.Vector3( -7, 28, -5),
-            new THREE.Vector3( -8, 29, -5),
-            new THREE.Vector3( -8.5, 29.25, -5 ),
+            new THREE.Vector3( -7.7, 21, -5),
+            new THREE.Vector3( -6.8, 22, -5),
+            new THREE.Vector3( -6.15, 23.8, -5),
+            new THREE.Vector3( -5.95, 25, -5),
+            new THREE.Vector3( -6.15, 26.2, -5),
+            new THREE.Vector3( -7, 28, -5), // -7, 28, -5
             new THREE.Vector3( -9, 29.5, -5), // turn 2 end
-            new THREE.Vector3( -12, 31, -5.25),
-            new THREE.Vector3( -18, 33, -5.5), 
             new THREE.Vector3( -31, 38.5, -8), // turn 3 start
             new THREE.Vector3( -32.5, 40, -8),
             new THREE.Vector3( -34, 43, -8), // turn 3 end
@@ -94,27 +89,31 @@ function TrackScene( {navBarTrigger} ) {
             new THREE.Vector3( -67, 136, -1.2), 
             new THREE.Vector3( -63.5, 139, -0.8), 
             new THREE.Vector3( -60, 140, -0.4), // turn 5 end
-            new THREE.Vector3( -15, 135.5, 0), // turn 6 start
-            new THREE.Vector3( -13, 135, 0), 
-            new THREE.Vector3( -11, 134, 0), // turn 6 end
-            new THREE.Vector3( -10, 129, 0), // turn 7 start
-            new THREE.Vector3( -9.5, 127.5, 0),
-            new THREE.Vector3( -8, 126, 0),// turn 7 end
+            new THREE.Vector3( -20, 135.5, 0), // turn 6 start
+            new THREE.Vector3( -14, 134.5, 0),
+            new THREE.Vector3( -11, 133, 0), 
+            new THREE.Vector3( -10, 131, 0),
+            new THREE.Vector3( -10, 130, 0), // turn 6 end
+            new THREE.Vector3( -10, 127, 0), // turn 7 start
+            new THREE.Vector3( -9.5, 125.5, 0),
+            new THREE.Vector3( -8, 124, 0),// turn 7 end
             new THREE.Vector3( 6, 116, 0), // turn 8 start
             new THREE.Vector3( 10, 115, 0),
             new THREE.Vector3( 14, 116, 0), // turn 8 end
             new THREE.Vector3( 22, 122, 0), // turn 9 start
             new THREE.Vector3( 25, 122.5, 0),
             new THREE.Vector3( 28, 120, 0), // turn 9 end
-            new THREE.Vector3( 36, 110, 0), // turn 10 start
-            new THREE.Vector3( 41, 103, 0), 
+            new THREE.Vector3( 36, 109, 0), // turn 10 start
+            new THREE.Vector3( 41.4, 103, 0), 
             new THREE.Vector3( 45, 101, 0), // turn 10 end
             new THREE.Vector3( 57.5, 96, 0), // turn 11 start
             new THREE.Vector3( 62, 93, 0),
             new THREE.Vector3( 63, 90, 0), // turn 11 end
-            new THREE.Vector3( 60.5, 31, 0), /// turn 12 start
-            new THREE.Vector3( 60, 29, 0), 
-            new THREE.Vector3( 58.5, 28.5, 0), // turn 12 end
+            new THREE.Vector3( 60.5, 36, 0), /// turn 12 start
+            new THREE.Vector3( 60, 33, 0), 
+            new THREE.Vector3( 58.5, 30, 0), 
+            new THREE.Vector3( 57, 29, 0),
+            new THREE.Vector3( 54, 29, 0), // turn 12 end
             new THREE.Vector3( 41, 33, 0), // turn 12a
             new THREE.Vector3( 29, 33, 0), // turn 13 start
             new THREE.Vector3( 26, 32, 0),
@@ -261,7 +260,7 @@ function TrackScene( {navBarTrigger} ) {
 
         // sampling track for camera purposes
         if (loadingFlag){
-            const camSamples = 1000;
+            const camSamples = 2500;
             for (let i=0; i<= camSamples; i++) {
                 const t = i/camSamples;
                 const pos = curve.getPointAt(t);
@@ -469,18 +468,18 @@ function TrackScene( {navBarTrigger} ) {
         scene.add(botPlane);
 
         // css2d renderer
-        // const cssRenderer = new CSS2DRenderer();
-        // cssRenderer.setSize(window.innerWidth, window.innerHeight);
-        // mountRef.current.appendChild(cssRenderer.domElement);
-        // cssRenderRef.current = cssRenderer;
+        const cssRenderer = new CSS2DRenderer();
+        cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        mountRef.current.appendChild(cssRenderer.domElement);
+        cssRenderRef.current = cssRenderer;
 
         // navbar
-        // if (camPhase === 3) {
-        //     const newNavbar = Navbar();
-        //     const navbarObj = new CSS2DObject(newNavbar);
-        //     navbarObj.position.set(0, 5, 15);
-        //     scene.add(navbarObj);
-        // }
+        if (camPhase === 3) {
+            const newNavbar = Navbar();
+            const navbarObj = new CSS2DObject(newNavbar);
+            navbarObj.position.set(0, 5, 15);
+            scene.add(navbarObj);
+        }
 
         // postprocessing w/ bloom
         const renderScene = new RenderPass(scene, camera);
@@ -535,8 +534,9 @@ function TrackScene( {navBarTrigger} ) {
             const prevTan = camFrames[j-1].tan;
             const nextTan = camFrames[j+1].tan;
             const curvature = prevTan.clone().sub(nextTan).length();
+            //const curvature = nextTan.clone().sub(prevTan).length();
 
-            const weight = 1/(1+0.01*curvature);
+            const weight = 1/(1-1.55*curvature);
             totalWeight += weight;
             curveWeights.push(weight);
         }
@@ -676,7 +676,7 @@ function TrackScene( {navBarTrigger} ) {
             }
         } else {
             updateCamera(camFrames);
-
+            
             composer.render(scene, camera);
             cssRenderer.render(scene, camera);
         }     
