@@ -13,6 +13,7 @@ import { useState } from 'react';
 import Navbar from './navbar.jsx'
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import '../App.css';
+import { layoutStatus } from '../utils/layoutManager.js';
 
 
 function TrackScene( {navBarTrigger} ) {
@@ -31,7 +32,6 @@ function TrackScene( {navBarTrigger} ) {
     let curve;
     let loadingScene, loadAnimID, tracer, manager, Loadtrack, elapsed;
     let mirror, track, botPlane;
-    //let camDist;
     let loadComplete = false;
     let tracerT = 0;
     let speed = 0.25;
@@ -51,9 +51,7 @@ function TrackScene( {navBarTrigger} ) {
     let lasT, newDelta;
     let trackWeights = [];
     let loadingFlag = true;
-    // let curveWeights = [];
-    // let normWeights = [];
-
+    let isWide, isSkinny, aspectRatio;
 
     function createTrack() {
         // trace of the track
@@ -375,6 +373,10 @@ function TrackScene( {navBarTrigger} ) {
         return botPlane;
     }
 
+    function gantry() {
+
+    };
+
     init(); 
 
     function init() {
@@ -428,7 +430,6 @@ function TrackScene( {navBarTrigger} ) {
         loadingScene.add(tracer);
 
     }
-
 
     function handleLoadComplete() {
         const now = performance.now();
@@ -503,6 +504,7 @@ function TrackScene( {navBarTrigger} ) {
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
         cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        const {isWide, isSkinny, aspectRatio} = layoutStatus(window.innerWidth, window.innerHeight); 
     }
 
     // on click for camera animation
@@ -649,7 +651,6 @@ function TrackScene( {navBarTrigger} ) {
             ? 4 * t * t * t
             : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
-
 
     function animate() {
         animationRef.current = requestAnimationFrame(animate);
