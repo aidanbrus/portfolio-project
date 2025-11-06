@@ -14,6 +14,7 @@ import Navbar from './navbar.jsx'
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import '../App.css';
 import LayoutStatus from '../utils/layoutManager.js';
+import makeGantry from '../utils/createBox.js';
 
 
 function TrackScene( {navBarTrigger} ) {
@@ -32,6 +33,7 @@ function TrackScene( {navBarTrigger} ) {
     let curve;
     let loadingScene, loadAnimID, tracer, manager, Loadtrack, elapsed;
     let mirror, track, botPlane;
+    let rightFoot, leftFoot, rightPost, leftPost, mainBar;
     let loadComplete = false;
     let tracerT = 0;
     let speed = 0.25;
@@ -195,9 +197,9 @@ function TrackScene( {navBarTrigger} ) {
             // Compute tangent directly from neighboring points
             let tangent;
             if (i === 0) {
-                tangent = pathPoints[i + 1].clone().sub(point).normalize() // pathPoints[i + 1].clone().sub(point).normalize(); 
+                tangent = pathPoints[i + 1].clone().sub(point).normalize() 
             } else if (i === pathPoints.length - 1) {
-                tangent = point.clone().sub(pathPoints[i - 1]).normalize(); // pathPoints[1].clone().sub(pathPoints[0]).normalize();
+                tangent = point.clone().sub(pathPoints[i - 1]).normalize(); 
             } else {
                 tangent = pathPoints[i + 1].clone().sub(pathPoints[i - 1]).normalize();
             }
@@ -214,7 +216,7 @@ function TrackScene( {navBarTrigger} ) {
 
             const binormal = new THREE.Vector3().crossVectors(tangent, prevNormal).normalize();
 
-            // --- Handle last ring fix ---
+            // handle last ring
             let ringVertices = [];
             if (i === pathPoints.length - 1) {
                 // Force last ring = first ring
@@ -251,9 +253,6 @@ function TrackScene( {navBarTrigger} ) {
                     indices.push(prevBase + p, base + nextP, prevBase + nextP);
                 }
             }
-
-            // info for the camera
-            // camFrames.push({tangent, prevNormal, binormal, position: point});
         };
 
         // sampling track for camera purposes
@@ -373,10 +372,6 @@ function TrackScene( {navBarTrigger} ) {
         return botPlane;
     }
 
-    function gantry() {
-
-    };
-
     init(); 
 
     function init() {
@@ -413,7 +408,7 @@ function TrackScene( {navBarTrigger} ) {
         cssRef.current.appendChild(cssRenderer.domElement);
         cssRenderRef.current = cssRenderer;
 
-        sceneCSS = new THREE.Scene();
+        // sceneCSS = new THREE.Scene();
 
         // low quality version of background
         loadingScene.background = new THREE.Color(0x0a0a1a);
@@ -468,11 +463,25 @@ function TrackScene( {navBarTrigger} ) {
         botPlane = createPlane();
         scene.add(botPlane);
 
+        // gantry
+        rightFoot = makeGantry(new THREE.Vector3( -4, 10, 0.25), 'x', 4, 0.5, 0.5);
+        rightPost = makeGantry(new THREE.Vector3( -4, 10, 3), 'z', 5, 0.25, 0.25);
+        leftFoot = makeGantry(new THREE.Vector3( -4, 0, 0.25), 'x', 4, 0.5, 0.5);
+        leftPost = makeGantry(new THREE.Vector3( -4, 0, 3), 'z', 5, 0.25, 0.25);
+        mainBar = makeGantry(new THREE.Vector3( -4, 5, 5), 'x', 0.25, 9.75, 1);
+        scene.add(rightFoot);
+        scene.add(rightPost);
+        scene.add(leftFoot);
+        scene.add(leftPost);
+        scene.add(mainBar);
+
         // css2d renderer
-        const cssRenderer = new CSS2DRenderer();
-        cssRenderer.setSize(window.innerWidth, window.innerHeight);
-        mountRef.current.appendChild(cssRenderer.domElement);
-        cssRenderRef.current = cssRenderer;
+        // const cssRenderer = new CSS2DRenderer();
+        // cssRenderer.setSize(window.innerWidth, window.innerHeight);
+        // mountRef.current.appendChild(cssRenderer.domElement);
+        // cssRenderRef.current = cssRenderer;
+
+        // sceneCSS = new THREE.Scene();
 
         // navbar
         if (camPhase === 3) {
