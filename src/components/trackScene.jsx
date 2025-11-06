@@ -13,7 +13,7 @@ import { useState } from 'react';
 import Navbar from './navbar.jsx'
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import '../App.css';
-import { layoutStatus } from '../utils/layoutManager.js';
+import LayoutStatus from '../utils/layoutManager.js';
 
 
 function TrackScene( {navBarTrigger} ) {
@@ -51,7 +51,7 @@ function TrackScene( {navBarTrigger} ) {
     let lasT, newDelta;
     let trackWeights = [];
     let loadingFlag = true;
-    let isWide, isSkinny, aspectRatio;
+    let aspectRatio, layoutMode;
 
     function createTrack() {
         // trace of the track
@@ -504,7 +504,7 @@ function TrackScene( {navBarTrigger} ) {
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
         cssRenderer.setSize(window.innerWidth, window.innerHeight);
-        const {isWide, isSkinny, aspectRatio} = layoutStatus(window.innerWidth, window.innerHeight); 
+        const {aspectRatio, layoutMode} = LayoutStatus(window.innerWidth, window.innerHeight); 
     }
 
     // on click for camera animation
@@ -559,7 +559,7 @@ function TrackScene( {navBarTrigger} ) {
         while (i<trackWeights.length-1 && scrollProgress > trackWeights[i]) {
             i++;
         }
-        console.log(trackWeights);
+
         const prev = trackWeights[i-1] ?? 0;
         const next = trackWeights[i];
         //const t = (scrollProgress - prev)/(next - prev);
@@ -617,7 +617,7 @@ function TrackScene( {navBarTrigger} ) {
             const nextIndex = Math.min(index+1, totalFrames-1);
             const prevIndex = Math.max(index-1, 0);
             const alpha = (camProg *(totalFrames - 1)) - index;
-            console.log(camProg);
+            // console.log(camProg);
 
             const camPos = camFrames[index].pos.clone().lerp(camFrames[nextIndex].pos, alpha);
             camPos.z = camPos.z + 3;
@@ -654,7 +654,6 @@ function TrackScene( {navBarTrigger} ) {
 
     function animate() {
         animationRef.current = requestAnimationFrame(animate);
-        // var switchCheck = false;
 
         if (!switchCheck) {
             const now = performance.now();
@@ -727,25 +726,6 @@ function TrackScene( {navBarTrigger} ) {
 
     //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
     return (
-        // <div style={{ width: '100%', height: '100vh',  position: 'relative'}}>
-        //     <div
-        //         id="container-track"
-        //         ref={mountRef}
-        //         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
-        //     />
-        //     <div
-        //         id="container-css"
-        //         ref={cssRef}
-        //         style = {{
-        //             width: '100%',
-        //             height: '100%',
-        //             position: 'absolute',
-        //             top: 0,
-        //             left: 0,
-        //             pointEvents: 'none'
-        //         }}
-        //     />
-        // </div>
         <div id="container-scroll" style={{width: "100%", height:"100vh", overflowY:"scroll"}}>
             <div
                 style={{
