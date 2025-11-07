@@ -1,36 +1,35 @@
 import React from 'react';
 import Navbar from './components/navbar.jsx';
 import TrackScene from './components/trackScene.jsx';
-import { useState } from 'react';
+import layoutStatus from './utils/layoutManager.js';
+import { useState, useEffect } from 'react';
 import './App.css';
 import './index.css';
 
-function App() {
-  const [showNavbar, setShowNavbar] = useState(false);
+export default function App() {
+  //const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [layout, setLayout] = useState('wide');
+  const [navMode, setNavMode] = useState('gantry');
+  const [aspect, setAspectRatio] = useState(window.innerWidth/window.innerHeight);
 
-  const handleNavTrigger = (phase) => {
-    console.log("handleNavTrigger called with phase =", phase);
-    if (phase === 3) {
-      setShowNavbar(true);
-    }
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      const {aspectRatio, layoutMode} = layoutStatus(window.innerWidth, window.innerHeight);
+      setLayout(layoutMode)
+      setAspectRatio(aspectRatio)
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <>
-      <section id="home">
-        <TrackScene navBarTrigger={handleNavTrigger} />
-        {showNavbar && <Navbar visible={showNavbar} />}
-      </section>
-      {/* <section id="bio">
-        <h2>Bio</h2>
-        <p>Some info about you here.</p>
-      </section>
-      <section id="projects">
-        <h2>Projects</h2>
-        <p>Some project info here.</p>
-      </section> */}
+      <Navbar mode={navMode} layoutStyle={layout} />
+      <TrackScene setNavMode={setNavMode} layoutStyle={layout} camAspect={aspect} />
     </>
   );
+  
 }
-
-export default App
