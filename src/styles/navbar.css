@@ -1,0 +1,41 @@
+/* navbar formatting and css */
+
+.navbar {
+    position: absolute;
+    top: 10.5%;
+    left: 50%;
+    height: 100px;
+    width: 65%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 50, 0.4);
+    padding: 0.8rem 2rem;
+    border-radius: 1 rem;
+    border: 2px solid rgba(0, 150, 255, 0.8);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease, transform 1s ease;
+    z-index: 100;
+}
+
+.navbar.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.navbar a {
+    color: #00bfff;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    text-decoration: none;
+    transition: color 0.3 ease;
+}
+
+.navbar a:hover {
+    color: #fff;
+}

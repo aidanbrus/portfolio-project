@@ -3,20 +3,29 @@ import Navbar from './components/navbar.jsx';
 import TrackScene from './components/trackScene.jsx';
 import layoutStatus from './utils/layoutManager.js';
 import { useState, useEffect } from 'react';
-import './App.css';
-import './index.css';
+import './styles/App.css'
+import './styles/index.css';
 
 export default function App() {
-  //const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [navbarVis, setNavbarVis] = useState(false);
   const [layout, setLayout] = useState('wide');
   const [navMode, setNavMode] = useState('gantry');
   const [aspect, setAspectRatio] = useState(window.innerWidth/window.innerHeight);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth, 
+    height: window.innerHeight
+  })
+    
 
   useEffect(() => {
     const handleResize = () => {
       const {aspectRatio, layoutMode} = layoutStatus(window.innerWidth, window.innerHeight);
       setLayout(layoutMode)
       setAspectRatio(aspectRatio)
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
     };
 
     window.addEventListener('resize', handleResize);
@@ -27,8 +36,8 @@ export default function App() {
 
   return (
     <>
-      <Navbar mode={navMode} layoutStyle={layout} />
-      <TrackScene setNavMode={setNavMode} layoutStyle={layout} camAspect={aspect} />
+      <Navbar mode={navMode} layoutStyle={layout} visNavbar={navbarVis}/>
+      <TrackScene setNavMode={setNavMode} layoutStyle={layout} camAspect={aspect} sizeWindow={windowSize} setVisNavbar={setNavbarVis}/>
     </>
   );
   

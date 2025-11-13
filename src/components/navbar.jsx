@@ -2,13 +2,13 @@
 // last line is if I want a separate page for boring stuff like private policy and the like
 
 // import React, { useState, useEffect } from 'react';
-import '../index.css';
+import '../styles/navbar.css';
 
 // new navbar code
-export default function Navbar({mode, layoutStyle}) {
-  if (layoutStyle === 'wide' || 'mobileWide') {
+export default function Navbar({mode, layoutStyle, visNavbar}) {
+  if (layoutStyle === 'wide' || layoutStyle === 'mobileWide') {
     return (
-      <div className={`navbar ${mode} ${layoutStyle}`}>
+      <div className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}>
         <>
           <a href='#'>Performance</a>
           <a href='#'>Methods</a>
@@ -20,7 +20,7 @@ export default function Navbar({mode, layoutStyle}) {
     )
   } else {
     return (
-      <div className={`navbar ${mode} ${layout}`}>
+      <div className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}>
         <>
           <a href='#'>Performance</a>
           <a href='#'>Methods</a>

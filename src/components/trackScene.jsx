@@ -2,22 +2,22 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// import { Reflector } from 'three/examples/jsm/objects/Reflector.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { emissive, materialReflectivity, materialSpecularIntensity, objectDirection } from 'three/tsl';
 import { newReflector } from '../utils/newReflector.js';
 import { useState } from 'react';
-import Navbar from './navbar.jsx'
+// import Navbar from './navbar.jsx'
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
-import '../App.css';
-import LayoutStatus from '../utils/layoutManager.js';
+import '../styles/App.css';
+// import LayoutStatus from '../utils/layoutManager.js';
 import makeGantry from '../utils/createBox.js';
 
 
-function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
+function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavbar} ) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
   const renderRef = useRef(null);
@@ -25,6 +25,10 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
   const cssRenderRef = useRef(null);
   const cssRef = useRef(null);
   const camDist = useRef(0);
+  const camRef = useRef(null);
+  const compRef = useRef(null);
+
+  const {width, height} = sizeWindow;
 
   useEffect(() => {
         //if (!mountRef.current) return;
@@ -307,8 +311,8 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
             const reflectorGeo = new THREE.PlaneGeometry(1600, 1000);
             const reflector = new newReflector(reflectorGeo, {
                 clipBias: 0.003,
-                textureWidth: window.innerWidth * window.devicePixelRatio,
-                textureHeight: window.innerHeight * window.devicePixelRatio,
+                textureWidth: width * window.devicePixelRatio,
+                textureHeight: height * window.devicePixelRatio,
                 color: 'rgba(78, 77, 81, 1)',
             });
 
@@ -390,12 +394,13 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
             // new stuff: mountRef.current.clientWidth / mountRef.current.clientHeight
             camera.position.set( 0, 72.5, 500);
             camera.lookAt(0,72.5,0);
+            camRef.current = camera;
 
             // loadingScene.fog = new THREE.FogExp2(0x000000, 0.004);
 
             // renderer
             renderer = new THREE.WebGLRenderer({ antialias:true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(width, height);
             // old setSize arguments: window.innerWidth, window.innerHeight
             // new ones: mountRef.current.clientWidth, mountRef.current.clientHeight
             renderer.setClearColor(0x000000, 1);
@@ -405,7 +410,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
 
             // css2d renderer
             cssRenderer = new CSS2DRenderer();
-            cssRenderer.setSize(window.innerWidth, window.innerHeight);
+            cssRenderer.setSize(width, height);
             cssRef.current.appendChild(cssRenderer.domElement);
             cssRenderRef.current = cssRenderer;
 
@@ -422,6 +427,9 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
                 new THREE.MeshBasicMaterial({color:'rgba(157, 244, 255, 1)'})
             );
             loadingScene.add(tracer);
+
+            composer = new EffectComposer(renderer);
+            compRef.current = composer;
 
         }
 
@@ -487,26 +495,17 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
             // postprocessing w/ bloom
             const renderScene = new RenderPass(scene, camera);
             const bloomPass = new UnrealBloomPass(
-                new THREE.Vector2( window.innerWidth, window.innerHeight),
+                new THREE.Vector2( width, height),
                 1.0, // strength
                 1.25, // radius
                 0.05 // threshold
             );
 
-            composer = new EffectComposer(renderer);
+            // composer = new EffectComposer(renderer);
             composer.addPass(renderScene);
             composer.addPass(bloomPass);
+            compRef.current = composer;
 
-            window.addEventListener('resize', onWindowResize);
-        }
-
-        function onWindowResize() {
-            camera.aspect = camAspect;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-            cssRenderer.setSize(window.innerWidth, window.innerHeight);
-            // const {aspectRatio, layoutMode} = LayoutStatus(window.innerWidth, window.innerHeight); 
         }
 
         // on click for camera animation
@@ -577,6 +576,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
         function updateCamera(camFrames) {
             if (camPhase == 1.0){
                 // transition from loading camera spot to initial main spot
+                setVisNavbar(false);
                 setTimeout(() => {
                 camProgress1 += camSpeed;
                 if (camProgress1 > 1) {
@@ -612,7 +612,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
 
             } else if (camPhase == 3.0) {
                 // once user is on track
-                //console.log(camDist);
+                setVisNavbar(true);
                 const camProg = camDist.current;
                 const totalFrames = camFrames.length;
                 const index = Math.floor(camProg * (totalFrames -1));
@@ -681,6 +681,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
                 
                 composer.render(scene, camera);
                 cssRenderer.render(scene, camera);
+
             }     
         }
 
@@ -690,7 +691,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
                 cancelAnimationFrame(animationRef.current);
             }
 
-            window.removeEventListener('resize', onWindowResize);
+            // window.removeEventListener('resize', onWindowResize);
             // window.removeEventListener('click',);
             // window.removeEventListener('scroll',);
 
@@ -724,7 +725,24 @@ function TrackScene( {setNavMode, layoutStyle, camAspect} ) {
             scrollContainer.removeEventListener('scroll',trackScroll)
         };
 
-    }, [layoutStyle]);
+    }, []);
+
+    useEffect(() => {
+        if (!camRef || !renderRef || !cssRenderRef || !compRef) return;
+        const renderMain = renderRef.current;
+        const renderCSS = cssRenderRef.current;
+        const composerMain = compRef.current;
+        const camMain = camRef.current;
+        
+        camMain.aspect = width/height;
+        camMain.updateProjectionMatrix();
+
+        renderMain.setSize(width, height);
+        composerMain.setSize(width, height);
+        renderCSS.setSize(width, height);
+        renderRef.current.setSize(width, height);
+        cssRenderRef.current.setSize(width, height);
+    }, [sizeWindow]);
 
     //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
     return (
