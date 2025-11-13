@@ -780,7 +780,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
                     }}
                 />
             </div>
-            <div style={{height: "13000px"}}/>
+            <div style={{height: "10px"}}/>
         </div>
     );    
 

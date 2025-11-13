@@ -2,9 +2,9 @@
 
 .navbar {
     position: absolute;
-    top: 10.5%;
+    top: 12%;
     left: 50%;
-    height: 100px;
+    height: 90px;
     width: 65%;
     transform: translateX(-50%);
     display: flex;
@@ -13,8 +13,8 @@
     align-items: center;
     background: rgba(0, 0, 50, 0.4);
     padding: 0.8rem 2rem;
-    border-radius: 1 rem;
-    border: 2px solid rgba(0, 150, 255, 0.8);
+    /* border-radius: 1 rem;
+    border: 2px solid rgba(0, 150, 255, 0.8); */
     backdrop-filter: blur(6px);
     opacity: 0;
     pointer-events: none;
