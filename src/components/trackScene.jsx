@@ -15,6 +15,7 @@ import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import '../styles/App.css';
 // import LayoutStatus from '../utils/layoutManager.js';
 import makeGantry from '../utils/createBox.js';
+import ScrollMap from '../utils/scrollMap.js';
 
 
 function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavbar} ) {
@@ -27,8 +28,12 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
   const camDist = useRef(0);
   const camRef = useRef(null);
   const compRef = useRef(null);
+  const scrollRef = useRef(null);
 
   const {width, height} = sizeWindow;
+
+  let trackWeights = [];
+  let camFrames = [];
 
   useEffect(() => {
         //if (!mountRef.current) return;
@@ -53,9 +58,9 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
         let switchCheck = false;
         let cssRenderer, sceneCSS;
         let storedRotation;
-        let camFrames = [];
+        //let camFrames = [];
         let lasT, newDelta;
-        let trackWeights = [];
+        // let trackWeights = [];
         let loadingFlag = true;
         let aspectRatio, layoutMode;
 
@@ -514,20 +519,22 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
         });
 
         // tracking scrolling for main animation
-        const scrollContainer = document.getElementById('container-scroll');
+        // const scrollContainer = document.getElementById('inner-scroll');
+        // console.log(scrollContainer);
 
         // const trackScroll = () => {
-        const trackScroll = () => {
-            const scrollY = scrollContainer.scrollTop;
-            const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-            //camDist.current = scrollY/scrollHeight; // can scale how far scroll goes
-            const scrollProgress = scrollY/scrollHeight;
-            camDist.current = scrollMap(scrollProgress, trackWeights);
-            //console.log(trackWeights);
-            // console.log(camDist);
-        };
+        //     const scrollY = scrollContainer.scrollTop;
+        //     const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+        //     console.log(scrollY);
+        //     console.log(scrollHeight);
+        //     //camDist.current = scrollY/scrollHeight; // can scale how far scroll goes
+        //     const scrollProgress = scrollY/scrollHeight;
+        //     camDist.current = scrollMap(scrollProgress, trackWeights);
+        //     //console.log(trackWeights);
+        //     // console.log(camDist);
+        // };
 
-        scrollContainer.addEventListener('scroll',trackScroll);
+        // scrollContainer.addEventListener('scroll',trackScroll);
 
         function compWeight(camFrames) {
             let totalWeight = 0;
@@ -554,24 +561,22 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
             return normWeights
         }
 
-        function scrollMap(scrollProgress, trackWeights) {
-            //console.log(normWeights);
-            let i=0;
-            while (i<trackWeights.length-1 && scrollProgress > trackWeights[i]) {
-                i++;
-            }
+        // function scrollMap(scrollProgress, trackWeights) {
+        //     let i=0;
+        //     while (i<trackWeights.length-1 && scrollProgress > trackWeights[i]) {
+        //         i++;
+        //     }
 
-            const prev = trackWeights[i-1] ?? 0;
-            const next = trackWeights[i];
-            //const t = (scrollProgress - prev)/(next - prev);
+        //     const prev = trackWeights[i-1] ?? 0;
+        //     const next = trackWeights[i];
 
-            const denom = next - prev;
-            const epsilon = 1e-8; // small threshold to avoid divide-by-zero
+        //     const denom = next - prev;
+        //     const epsilon = 1e-8; 
 
-            const t = Math.abs(denom) < epsilon ? 0 : (scrollProgress - prev) / denom;
+        //     const t = Math.abs(denom) < epsilon ? 0 : (scrollProgress - prev) / denom;
 
-            return (i+t)/(camFrames.length-1);
-        }
+        //     return (i+t)/(camFrames.length-1);
+        // }
 
         function updateCamera(camFrames) {
             if (camPhase == 1.0){
@@ -722,7 +727,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
                 cssRenderRef.current.domElement.remove();
             }
 
-            scrollContainer.removeEventListener('scroll',trackScroll)
+            // scrollContainer.removeEventListener('scroll',trackScroll)
         };
 
     }, []);
@@ -744,12 +749,102 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
         cssRenderRef.current.setSize(width, height);
     }, [sizeWindow]);
 
+    useEffect(() => {
+        const scroll = scrollRef.current;
+        if (!scroll) return;
+        //console.log('tally one');
+        const trackScroll = () => {
+            const y = scroll.scrollTop;
+            const max = scroll.scrollHeight - scroll.clientHeight;
+            const prog = y/max;
+            console.log(prog);
+            console.log(trackWeights);
+            console.log(camFrames);
+            camDist.current = ScrollMap(prog, trackWeights, camFrames);            
+        };
+        scroll.addEventListener('scroll', trackScroll);
+        return () => scroll.removeEventListener('scroll',trackScroll);
+    }, []);
+
     //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
     return (
-        <div id="container-scroll" style={{width: "100%", height:"100vh", overflowY:"scroll"}}>
+        // <div 
+        //     id="container-scroll" 
+        //     style={{
+        //         width: "100%", 
+        //         height:"100vh", 
+        //         overflow:"hidden",
+        //         position: "relative",
+        //     }}
+        // >
+        //     <div 
+        //         id="inner-scroll"
+        //         style={{
+        //             height: "13000px",
+        //             overflowY: "scroll",
+        //             overflowX: "hidden",
+        //             width: "100%",
+        //             position: "absolute",
+        //             zIndex: 50,
+        //             top: 0,
+        //             left: 0,
+        //             scrollbarWidth: "none",
+        //         }}
+        //         ref={scrollRef}
+        //     />
+
+        //     <div
+        //         style={{
+        //             position:"sticky",
+        //             top: 0,
+        //             left: 0,
+        //             width: "100%",
+        //             height: "100vh",
+        //             zIndex: 10,
+        //         }}
+        //     >
+        //         <div
+        //             id="container-track"
+        //             ref={mountRef}
+        //             style={{
+        //                 width: "100%",
+        //                 height: "100%",
+        //                 position: "absolute",
+        //                 top: 0,
+        //                 left: 0,
+        //                 zIndex: 20,
+        //             }}
+        //         />
+        //         <div
+        //             id="container-css"
+        //             ref={cssRef}
+        //             style={{
+        //                 width: "100%",
+        //                 height: "100%",
+        //                 position: "absolute",
+        //                 top: 0,
+        //                 left: 0,
+        //                 pointerEvents: "none",
+        //                 zIndex: 20,
+        //             }}
+        //         />
+        //     </div>
+        // </div>
+        <div 
+            id="container-scroll" 
+            style={{
+                width: "100%", 
+                height:"100vh", 
+                overflowY:"scroll",
+                overflowX: 'hidden',
+                scrollBarWidth: 'none',
+                position: 'absolute'
+            }}
+            ref={scrollRef}
+        >
             <div
                 style={{
-                    postion:"sticky",
+                    position:"sticky",
                     top: 0,
                     left: 0,
                     width: "100%",
@@ -780,7 +875,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
                     }}
                 />
             </div>
-            <div style={{height: "10px"}}/>
+            <div style={{height: "13000px"}}/>
         </div>
     );    
 

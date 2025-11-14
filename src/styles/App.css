@@ -1,30 +1,30 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-}
+} */
 
-#container-track, #container-css {
+/* #container-track, #container-css {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 10;
-}
+} */
 
-#container-scroll {
-  position: fixed;
+/* #container-scroll {
+  position: relative;
   top: 0;
   left: 0;
   width: 100%;
   height: 100vh;
   overflow-y: scroll;
-  z-index: 50;
+  z-index: 5;
   margin: 0;
   overflow: hidden;
-}
+} */
 
 #container-scroll {
   scrollbar-width: none;
@@ -35,13 +35,23 @@
   display: none;
 }
 
+/* #inner-scroll {
+  z-index: 5;
+} */
+
 #container-css {
   pointer-events: none; /*so clicks go to main track scene and not the css2d scene*/
 }
 
+/* one that matters*/
 html, body {
   height: 100%;
   overflow: hidden;
   margin: 0;
-  position: fixed;
+  /* position: relative; */
+  /* z-index: 1; */
 }
+
+/* #container-track canvas {
+  display: block;
+} */
