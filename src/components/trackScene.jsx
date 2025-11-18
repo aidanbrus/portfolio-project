@@ -265,8 +265,9 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
             };
 
             // sampling track for camera purposes
-            if (loadingFlag){
+            if (!loadingFlag){
                 const camSamples = 2500;
+                console.log('tally 1 camframes');
                 for (let i=0; i<= camSamples; i++) {
                     const t = i/camSamples;
                     const pos = curve.getPointAt(t);
@@ -277,7 +278,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
             };
 
             // prep for camera animation in phase 3
-            if (loadingFlag) {
+            if (!loadingFlag) {
                 trackWeights = compWeight(camFrames);
             };
             
@@ -624,7 +625,6 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
                 const nextIndex = Math.min(index+1, totalFrames-1);
                 const prevIndex = Math.max(index-1, 0);
                 const alpha = (camProg *(totalFrames - 1)) - index;
-                // console.log(camProg);
 
                 const camPos = camFrames[index].pos.clone().lerp(camFrames[nextIndex].pos, alpha);
                 camPos.z = camPos.z + 3;
@@ -752,15 +752,19 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
     useEffect(() => {
         const scroll = scrollRef.current;
         if (!scroll) return;
-        //console.log('tally one');
+
         const trackScroll = () => {
             const y = scroll.scrollTop;
             const max = scroll.scrollHeight - scroll.clientHeight;
             const prog = y/max;
-            console.log(prog);
-            console.log(trackWeights);
-            console.log(camFrames);
-            camDist.current = ScrollMap(prog, trackWeights, camFrames);            
+            camDist.current = ScrollMap(prog, trackWeights, camFrames); 
+            if (prog < 0.00326) {
+                setNavMode('gantry');
+            } else if (prog >= 0.00326 && prog < 0.987) {
+                setNavMode('track');
+            } else {
+                setNavMode('finish');
+            }
         };
         scroll.addEventListener('scroll', trackScroll);
         return () => scroll.removeEventListener('scroll',trackScroll);

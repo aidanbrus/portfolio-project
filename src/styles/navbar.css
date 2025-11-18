@@ -2,10 +2,10 @@
 
 .navbar {
     position: absolute;
-    top: 12%;
+    top: 11.2%;
     left: 50%;
-    height: 90px;
-    width: 65%;
+    height: 66px;
+    width: 65.25%;
     transform: translateX(-50%);
     display: flex;
     gap: 2rem;
@@ -38,4 +38,33 @@
 
 .navbar a:hover {
     color: #fff;
+}
+
+.navbar button {
+    color: #00bfff;
+    background: rgba(0, 0, 50, 0.4);
+    backdrop-filter: blur(6px);
+}
+
+.navbar button:hover {
+    color: #fff;
+}
+
+.navbar.gantry {
+    /* transform: translateY(0); */
+    position: absolute;
+}
+
+.navbar.track {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    /* transform: translateY(0); */
+    height: 15px;
+    /* border-radius: 1 rem;
+    border: 2px solid rgba(0, 150, 255, 0.8); */
+}
+
+.navbar.track:hover {
+    height: 40px;
 }
