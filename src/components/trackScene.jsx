@@ -18,7 +18,7 @@ import makeGantry from '../utils/createBox.js';
 import ScrollMap from '../utils/scrollMap.js';
 
 
-function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavbar} ) {
+function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavbar, setProgNav} ) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
   const renderRef = useRef(null);
@@ -757,10 +757,11 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
             const y = scroll.scrollTop;
             const max = scroll.scrollHeight - scroll.clientHeight;
             const prog = y/max;
-            camDist.current = ScrollMap(prog, trackWeights, camFrames); 
-            if (prog < 0.00326) {
+            camDist.current = ScrollMap(prog, trackWeights, camFrames);
+            setProgNav(prog);
+            if (prog < 0.05) {
                 setNavMode('gantry');
-            } else if (prog >= 0.00326 && prog < 0.987) {
+            } else if (prog >= 0.05 && prog < 0.987) {
                 setNavMode('track');
             } else {
                 setNavMode('finish');

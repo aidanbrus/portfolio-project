@@ -14,7 +14,8 @@ export default function App() {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth, 
     height: window.innerHeight
-  })
+  });
+  const [navProg, setNavProg] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,8 +36,8 @@ export default function App() {
 
   return (
     <>
-      <Navbar mode={navMode} layoutStyle={layout} visNavbar={navbarVis}/>
-      <TrackScene setNavMode={setNavMode} layoutStyle={layout} camAspect={aspect} sizeWindow={windowSize} setVisNavbar={setNavbarVis}/>
+      <Navbar mode={navMode} layoutStyle={layout} visNavbar={navbarVis} prog={navProg}/>
+      <TrackScene setNavMode={setNavMode} layoutStyle={layout} camAspect={aspect} sizeWindow={windowSize} setVisNavbar={setNavbarVis} setProgNav={setNavProg}/>
     </>
   );
   

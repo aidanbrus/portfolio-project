@@ -25,7 +25,7 @@
 .navbar.visible {
     opacity: 1;
     pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(-50%); /*trasnlateY(0)*/
 }
 
 .navbar a {
