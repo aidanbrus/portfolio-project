@@ -4,22 +4,22 @@
     position: absolute;
     top: 11.2%;
     left: 50%;
-    height: 66px;
+    height: 9vh;
     width: 65.25%;
     transform: translateX(-50%);
     display: flex;
     gap: 2rem;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 50, 0.4);
+    /* background: rgba(0, 0, 50, 0.4);
+    backdrop-filter: blur(6px); */
     padding: 0.8rem 2rem;
-    /* border-radius: 1 rem;
-    border: 2px solid rgba(0, 150, 255, 0.8); */
-    backdrop-filter: blur(6px);
     opacity: 0;
     pointer-events: none;
     transition: opacity 1s ease, transform 1s ease;
     z-index: 100;
+    /* border-radius: 1 rem;
+    border: 2px solid rgba(0, 150, 255, 0.8); */
 }
 
 .navbar.visible {
@@ -53,18 +53,21 @@
 .navbar.gantry {
     /* transform: translateY(0); */
     position: absolute;
+    transition: transform 0s ease;
 }
 
 .navbar.track {
     position: fixed;
     top: 0;
     width: 100%;
-    /* transform: translateY(0); */
-    height: 15px;
+    transform: translateY(0);
+    height: 4vh;
+    background: rgba(0, 0, 50, 0.4);
+    backdrop-filter: blur(6px);
     /* border-radius: 1 rem;
     border: 2px solid rgba(0, 150, 255, 0.8); */
 }
 
 .navbar.track:hover {
-    height: 40px;
+    height: 8vh;
 }

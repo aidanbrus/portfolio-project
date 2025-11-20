@@ -7,20 +7,21 @@ import '../styles/navbar.css';
 // new navbar code
 export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
   let navPos = 0;
-  // let navOp = 0;
+  // let navWid = 0;
   if (prog<0.00326) {
-    // navOp = 1+(-1/0.00326)*prog;
+    // navWid = 65.25 + (34.75/0.00326)*prog
     navPos = (-200/0.00326)*prog;
-  } else {
-    navPos=-200;
-  };
+  }
+  if (prog>=0.00326 && prog<0.05 || prog>=0.987 && prog<0.999) {
+    navPos = -200;
+  }
 
-  if (layoutStyle === 'wide' || layoutStyle === 'mobileWide' && prog<0.05) {
+  if (layoutStyle === 'wide' || layoutStyle === 'medium' && prog<0.05) {
     return (
       <div 
         className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}
         style={{
-          transform: `translateY(${navPos}px) translateX(-50%)`
+          transform: `translateY(${navPos}px) translateX(-50%)`,
         }}
       >
         <>
@@ -32,7 +33,7 @@ export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
         </>
       </div>
     )
-  } else if (layoutStyle === 'wide' || layoutStyle === 'mobileWide') {
+  } else if (layoutStyle === 'wide' || layoutStyle === 'medium' && prog>=0.05) {
     return (
       <div 
         className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}
@@ -46,9 +47,26 @@ export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
         </>
       </div>
     )
+  } else if (layoutStyle === 'skinny' || layoutStyle === 'weird' && prog<0.05){
+    return (
+      <div 
+        className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}
+        style={{
+          transform: `translateY(${navPos}px) translateX(-50%)`,
+        }}
+      >
+        <>
+          <a href='#'>Performance</a>
+          <a href='#'>Methods</a>
+          <button className='hamburger'>☰</button>
+        </>
+      </div>
+    )
   } else {
     return (
-      <div className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}>
+      <div 
+        className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}
+      >
         <>
           <a href='#'>Performance</a>
           <a href='#'>Methods</a>

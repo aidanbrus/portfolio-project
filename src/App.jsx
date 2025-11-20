@@ -9,7 +9,7 @@ import './styles/index.css';
 export default function App() {
   const [navbarVis, setNavbarVis] = useState(false);
   const [layout, setLayout] = useState('wide');
-  const [navMode, setNavMode] = useState('gantry');
+  const [navMode, setNavMode] = useState('loading');
   const [aspect, setAspectRatio] = useState(window.innerWidth/window.innerHeight);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth, 

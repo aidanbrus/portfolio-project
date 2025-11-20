@@ -759,7 +759,9 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
             const prog = y/max;
             camDist.current = ScrollMap(prog, trackWeights, camFrames);
             setProgNav(prog);
-            if (prog < 0.05) {
+            if (prog === 0) {
+                setNavMode('loading');
+            } else if (prog > 0 && prog < 0.05) {
                 setNavMode('gantry');
             } else if (prog >= 0.05 && prog < 0.987) {
                 setNavMode('track');
