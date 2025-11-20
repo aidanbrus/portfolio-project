@@ -71,3 +71,14 @@
 .navbar.track:hover {
     height: 8vh;
 }
+
+.navbar.finish {
+    position: absolute;
+    top: 11.2%;
+    left: 50%;
+    height: 9vh;
+    width: 65.25%;
+    transform: translateX(-50%);
+    transition: opacity 1s ease;
+
+}

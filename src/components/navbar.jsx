@@ -15,6 +15,7 @@ export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
   if (prog>=0.00326 && prog<0.05 || prog>=0.987 && prog<0.999) {
     navPos = -200;
   }
+ // console.log(visNavbar);
 
   if (layoutStyle === 'wide' || layoutStyle === 'medium' && prog<0.05) {
     return (

@@ -18,7 +18,7 @@ import makeGantry from '../utils/createBox.js';
 import ScrollMap from '../utils/scrollMap.js';
 
 
-function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavbar, setProgNav} ) {
+function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav, setCamPhase} ) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
   const renderRef = useRef(null);
@@ -34,6 +34,8 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
 
   let trackWeights = [];
   let camFrames = [];
+  let camPhase = 0;
+  let prog = 0
 
   useEffect(() => {
         //if (!mountRef.current) return;
@@ -49,7 +51,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
         let lastFrameTime = performance.now();
         let loadStartTime = performance.now();
         let deltaCam = 1.0;
-        let camPhase = 0.0;
+        // let camPhase = 0.0;
         let camProgress1 = 0.0;
         let camProgress2 = 0.0;
         let camProgress3 = 0.0;
@@ -445,11 +447,13 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
 
             if (elapsed > 4000 && tracerT < 0.01) {
                 camPhase = 1.0;
+                setCamPhase(camPhase);
                 loadComplete = true;
             } else {
                 const remaining = 4000 - elapsed;
                 setTimeout(() => {
                     camPhase = 1.0;
+                    setCamPhase(camPhase)
                     loadComplete = true; 
                 }, remaining);
             }
@@ -582,12 +586,12 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
         function updateCamera(camFrames) {
             if (camPhase == 1.0){
                 // transition from loading camera spot to initial main spot
-                setVisNavbar(false);
                 setTimeout(() => {
                 camProgress1 += camSpeed;
                 if (camProgress1 > 1) {
                     camProgress1 = 1;
-                    camPhase = 2.0; // move to next phase
+                    camPhase = 2.0;
+                    setCamPhase(camPhase);
                 }
                 let easing = easeIOCubic(camProgress1);
 
@@ -599,7 +603,8 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
                 camProgress2 += camSpeed;
                 if (camProgress2 > 1) {
                     camProgress2 = 1;
-                    camPhase = 3.0; // move to next phase
+                    camPhase = 3.0;
+                    setCamPhase(camPhase);
                     
                     const camEuler2 = new THREE.Euler().setFromQuaternion(camera.quaternion);
                     storedRotation = new THREE.Quaternion().setFromEuler(camEuler2);
@@ -618,7 +623,6 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
 
             } else if (camPhase == 3.0) {
                 // once user is on track
-                setVisNavbar(true);
                 const camProg = camDist.current;
                 const totalFrames = camFrames.length;
                 const index = Math.floor(camProg * (totalFrames -1));
@@ -661,6 +665,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
 
         function animate() {
             animationRef.current = requestAnimationFrame(animate);
+            let initScene = false;
 
             if (!switchCheck) {
                 const now = performance.now();
@@ -756,7 +761,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setVisNavb
         const trackScroll = () => {
             const y = scroll.scrollTop;
             const max = scroll.scrollHeight - scroll.clientHeight;
-            const prog = y/max;
+            prog = y/max;
             camDist.current = ScrollMap(prog, trackWeights, camFrames);
             setProgNav(prog);
             if (prog === 0) {

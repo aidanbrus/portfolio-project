@@ -16,6 +16,7 @@ export default function App() {
     height: window.innerHeight
   });
   const [navProg, setNavProg] = useState(0);
+  const [camPhase, setCamPhase] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -28,16 +29,40 @@ export default function App() {
       })
     };
 
+    console.log(camPhase);
+    if (camPhase === 1 || camPhase === 2) {
+      setNavbarVis(false);
+    } else if (camPhase === 3 && navProg < 0.987) {
+      setNavbarVis(true);
+    } else if (camPhase === 3 && navProg >= 0.987 && navProg < 0.999) {
+      setNavbarVis(false);
+    } else if (camPhase === 3 && navProg >= 0.999) {
+      setNavbarVis(true);
+    }
+
+    console.log(navbarVis);
     window.addEventListener('resize', handleResize);
     handleResize();
 
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [camPhase, navProg]);
 
   return (
     <>
-      <Navbar mode={navMode} layoutStyle={layout} visNavbar={navbarVis} prog={navProg}/>
-      <TrackScene setNavMode={setNavMode} layoutStyle={layout} camAspect={aspect} sizeWindow={windowSize} setVisNavbar={setNavbarVis} setProgNav={setNavProg}/>
+      <Navbar 
+        mode={navMode} 
+        layoutStyle={layout} 
+        visNavbar={navbarVis} 
+        prog={navProg}
+      />
+      <TrackScene 
+        setNavMode={setNavMode} 
+        layoutStyle={layout} 
+        camAspect={aspect} 
+        sizeWindow={windowSize}  
+        setProgNav={setNavProg}
+        setCamPhase={setCamPhase}
+      />
     </>
   );
   
