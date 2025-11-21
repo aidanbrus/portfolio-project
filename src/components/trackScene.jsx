@@ -269,7 +269,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
             // sampling track for camera purposes
             if (!loadingFlag){
                 const camSamples = 2500;
-                console.log('tally 1 camframes');
+                // console.log('tally 1 camframes');
                 for (let i=0; i<= camSamples; i++) {
                     const t = i/camSamples;
                     const pos = curve.getPointAt(t);
@@ -284,7 +284,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
                 trackWeights = compWeight(camFrames);
             };
             
-
+            
             // assign vertices to geometry (needs indices, uvs, etc. for full mesh)
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -311,7 +311,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
             
             // // info for the camera
             // camFrames.push({tangent, prevNormal, binormal, position: pathPoints.clone()});
-
+            console.log(curve.getLengths(14));
             return track;
         }
 
@@ -397,7 +397,6 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
             loadingScene = new THREE.Scene();
             sceneRef.current = loadingScene;
             camera = new THREE.PerspectiveCamera( 75, camAspect, 0.1, 1000);
-            // 
             // old window stuff: window.innerWidth/window.innerHeight
             // new stuff: mountRef.current.clientWidth / mountRef.current.clientHeight
             camera.position.set( 0, 72.5, 500);
@@ -523,24 +522,6 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
             phaseTwoClick = true;
         });
 
-        // tracking scrolling for main animation
-        // const scrollContainer = document.getElementById('inner-scroll');
-        // console.log(scrollContainer);
-
-        // const trackScroll = () => {
-        //     const scrollY = scrollContainer.scrollTop;
-        //     const scrollHeight = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-        //     console.log(scrollY);
-        //     console.log(scrollHeight);
-        //     //camDist.current = scrollY/scrollHeight; // can scale how far scroll goes
-        //     const scrollProgress = scrollY/scrollHeight;
-        //     camDist.current = scrollMap(scrollProgress, trackWeights);
-        //     //console.log(trackWeights);
-        //     // console.log(camDist);
-        // };
-
-        // scrollContainer.addEventListener('scroll',trackScroll);
-
         function compWeight(camFrames) {
             let totalWeight = 0;
             const curveWeights = [];
@@ -565,23 +546,6 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
             }
             return normWeights
         }
-
-        // function scrollMap(scrollProgress, trackWeights) {
-        //     let i=0;
-        //     while (i<trackWeights.length-1 && scrollProgress > trackWeights[i]) {
-        //         i++;
-        //     }
-
-        //     const prev = trackWeights[i-1] ?? 0;
-        //     const next = trackWeights[i];
-
-        //     const denom = next - prev;
-        //     const epsilon = 1e-8; 
-
-        //     const t = Math.abs(denom) < epsilon ? 0 : (scrollProgress - prev) / denom;
-
-        //     return (i+t)/(camFrames.length-1);
-        // }
 
         function updateCamera(camFrames) {
             if (camPhase == 1.0){
@@ -635,6 +599,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
                 const camTan = camFrames[index].tan.clone().lerp(camFrames[nextIndex].tan, alpha).normalize();
 
                 camera.position.copy(camPos);
+                console.log(camPos);
 
                 //ensuring that the camera is the right orientation and direction
                 const quatTan = camTan.clone();
@@ -778,70 +743,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
         return () => scroll.removeEventListener('scroll',trackScroll);
     }, []);
 
-    //return <div ref={mountRef} style={{ width: '100%', height: '100vh' }} />;
     return (
-        // <div 
-        //     id="container-scroll" 
-        //     style={{
-        //         width: "100%", 
-        //         height:"100vh", 
-        //         overflow:"hidden",
-        //         position: "relative",
-        //     }}
-        // >
-        //     <div 
-        //         id="inner-scroll"
-        //         style={{
-        //             height: "13000px",
-        //             overflowY: "scroll",
-        //             overflowX: "hidden",
-        //             width: "100%",
-        //             position: "absolute",
-        //             zIndex: 50,
-        //             top: 0,
-        //             left: 0,
-        //             scrollbarWidth: "none",
-        //         }}
-        //         ref={scrollRef}
-        //     />
-
-        //     <div
-        //         style={{
-        //             position:"sticky",
-        //             top: 0,
-        //             left: 0,
-        //             width: "100%",
-        //             height: "100vh",
-        //             zIndex: 10,
-        //         }}
-        //     >
-        //         <div
-        //             id="container-track"
-        //             ref={mountRef}
-        //             style={{
-        //                 width: "100%",
-        //                 height: "100%",
-        //                 position: "absolute",
-        //                 top: 0,
-        //                 left: 0,
-        //                 zIndex: 20,
-        //             }}
-        //         />
-        //         <div
-        //             id="container-css"
-        //             ref={cssRef}
-        //             style={{
-        //                 width: "100%",
-        //                 height: "100%",
-        //                 position: "absolute",
-        //                 top: 0,
-        //                 left: 0,
-        //                 pointerEvents: "none",
-        //                 zIndex: 20,
-        //             }}
-        //         />
-        //     </div>
-        // </div>
         <div 
             id="container-scroll" 
             style={{

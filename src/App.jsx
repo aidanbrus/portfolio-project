@@ -29,7 +29,7 @@ export default function App() {
       })
     };
 
-    console.log(camPhase);
+    // console.log(camPhase);
     if (camPhase === 1 || camPhase === 2) {
       setNavbarVis(false);
     } else if (camPhase === 3 && navProg < 0.987) {
@@ -40,7 +40,7 @@ export default function App() {
       setNavbarVis(true);
     }
 
-    console.log(navbarVis);
+    // console.log(navbarVis);
     window.addEventListener('resize', handleResize);
     handleResize();
 
