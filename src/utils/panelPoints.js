@@ -1,0 +1,1 @@
+// takes the camera points from panelMidpoint.json and converts into center points for the panels

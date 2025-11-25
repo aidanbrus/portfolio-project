@@ -26,10 +26,10 @@ export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
         }}
       >
         <>
-          <a href='#'>Performance</a>
+          <a href='#'>Race Models</a>
+          <a href='#'>Championship Models</a>
+          <a href='#'>Performace</a>
           <a href='#'>Methods</a>
-          <a href='#'>About</a>
-          <a href='#'>Bio</a>
           <button className='hamburger'>☰</button>
         </>
       </div>
@@ -40,10 +40,10 @@ export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
         className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}
       >
         <>
-          <a href='#'>Performance</a>
+          <a href='#'>Race Models</a>
+          <a href='#'>Championship Models</a>
+          <a href='#'>Performace</a>
           <a href='#'>Methods</a>
-          <a href='#'>About</a>
-          <a href='#'>Bio</a>
           <button className='hamburger'>☰</button>
         </>
       </div>
@@ -57,8 +57,8 @@ export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
         }}
       >
         <>
-          <a href='#'>Performance</a>
-          <a href='#'>Methods</a>
+          <a href='#'>Race</a>
+          <a href='#'>Championships</a>
           <button className='hamburger'>☰</button>
         </>
       </div>
@@ -69,8 +69,8 @@ export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
         className={`navbar ${mode} ${layoutStyle} ${visNavbar ? 'visible' : ''}`}
       >
         <>
-          <a href='#'>Performance</a>
-          <a href='#'>Methods</a>
+          <a href='#'>Race</a>
+          <a href='#'>Championships</a>
           <button className='hamburger'>☰</button>
         </>
       </div>

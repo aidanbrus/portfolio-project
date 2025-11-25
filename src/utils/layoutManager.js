@@ -9,7 +9,7 @@ function LayoutStatus(windowWidth, windowHeight) {
     // const isLandscape = !isPortrait;
 
     const isWide = windowWidth > 1000 && aspectRatio > 1.3 && windowHeight > 600;
-    const isSkinny = aspectRatio < 1 && windowWidth < 800;
+    const isSkinny = aspectRatio < 1 && windowWidth < 800 || aspectRatio > 1.7 && windowHeight < 450;
     const isWeird = aspectRatio > 1 && windowWidth < 600 && windowHeight < 500;
 
     let layoutMode;
