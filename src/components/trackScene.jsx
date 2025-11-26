@@ -599,7 +599,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
                 const camTan = camFrames[index].tan.clone().lerp(camFrames[nextIndex].tan, alpha).normalize();
 
                 camera.position.copy(camPos);
-                // console.log(camPos);
+                console.log(camPos);
 
                 //ensuring that the camera is the right orientation and direction
                 const quatTan = camTan.clone();
@@ -630,7 +630,6 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
 
         function animate() {
             animationRef.current = requestAnimationFrame(animate);
-            let initScene = false;
 
             if (!switchCheck) {
                 const now = performance.now();
@@ -653,6 +652,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
                 }
             } else {
                 updateCamera(camFrames);
+                console.log(camera.getWorldDirection(new THREE.Vector3()));
                 
                 composer.render(scene, camera);
                 cssRenderer.render(scene, camera);
