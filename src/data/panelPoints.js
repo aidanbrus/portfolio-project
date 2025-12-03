@@ -3,12 +3,14 @@
 // generate points for wide, aka split and full panels
 
 import * as THREE from 'three'; 
-import camPoints from './panelMidpoint.json'; 
+import camPoints from './panelMidpoint.json';
+import camDir from './camDirection.json';
 
 const up = new THREE.Vector3(0, 0, 1);
 // NEED TO CREATE JSON WITH CAMERA DIRECTIONS TO SCALE PANELS INFRONT OF THE CAMERA
 camPoints.forEach(row => {
     const pos = new THREE.Vector3(row.x, row.y, row.z);
+    //const dir = new THREE.Vector3(row.)
 
     if (row.type === "split") {
         const wing = pos.clone().cross(up.clone());
