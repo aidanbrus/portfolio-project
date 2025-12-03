@@ -6,32 +6,52 @@ import * as THREE from 'three';
 import camPoints from './panelMidpoint.json';
 import camDir from './camDirection.json';
 
-const up = new THREE.Vector3(0, 0, 1);
-// NEED TO CREATE JSON WITH CAMERA DIRECTIONS TO SCALE PANELS INFRONT OF THE CAMERA
-camPoints.forEach(row => {
-    const pos = new THREE.Vector3(row.x, row.y, row.z);
-    //const dir = new THREE.Vector3(row.)
+// const up = new THREE.Vector3(0, 0, 1);
+const height = new THREE.Vector3.apply(0, 0, 5);
+
+let fullPoints = [];
+let skinnyPoints = [];
+
+
+for (let i=0; i < camPoints.length; i++) {
+    const pos = camPoints[i];
+    const dir = camDir[i];
+
+    const posVect = new THREE.Vector3(pos.x, pos.y, pos.z);
+    const dirVect = new THREE.Vector3(dir.x, dir.y, dir.z);
+    const scaleDir = dirVect.multiplyScalar(5);
 
     if (row.type === "split") {
-        const wing = pos.clone().cross(up.clone());
-        const opWing = up.clone().cross(pos.clone());
+        const wing = posVect.clone().cross(height.clone());
+        const opWing = height.clone().cross(posVect.clone());
 
-        const tempPoint  = pos.clone().add(new THREE.Vector3(0, 0, 5));
-        const tempPointOp = pos.clone().add(new THREE.Vector3(0, 0, 5));
+        const tempPoint  = pos.clone().add(height.clone());
+        const tempPointOp = pos.clone().add(height.clone());
 
         const tempPoint2 = tempPoint.clone().add(wing.clone());
         const tempPointOp2 = tempPointOp.clone().add(opWing.clone());
 
-        // need to push the points forward by adding  the scaled camera direction vector to push panels forward
+        const finalPoint = tempPoint2.clone().add(scaleDir.clone())
+        const finalPointOp = tempPointOp2.clone().add(scaleDir.clone())
 
-        // then add both points to the main new json file
+        const tempMidSplit = posVect.clone().add(scaleDir.clone());
+        const finalMidSplit = tempMidSplit.clone().add(height.clone());
+
+        const rowR = {x: finalPoint.x, y: finalPoint.y, z: finalPoint.z};
+        const rowL = {x: finalPointOp.x, y: finalPointOp.y, z: finalPointOp.z};
+
+        const rowM = {x: finalMidSplit.x, y: finalMidSplit.y, z: finalMidSplit.z};
+
+
     } else {
         const tempPt = pos.clone().add(new THREE.Vector3(0, 0, 5));
         // const midPt = tempPT.clone().add(// insert camera direction vector here )
 
         // add point to the new json file
     }
-})
+
+
+}
 
 
 
