@@ -18,7 +18,7 @@ import makeGantry from '../utils/createBox.js';
 import ScrollMap from '../utils/scrollMap.js';
 
 
-function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav, setCamPhase} ) {
+function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav, setCamPhase, panelGroup} ) {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
   const renderRef = useRef(null);
@@ -38,11 +38,9 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
   let prog = 0
 
   useEffect(() => {
-        //if (!mountRef.current) return;
-
-        let scene, camera, renderer, composer, cameraPos;
+        let scene, camera, renderer, composer;
         let curve;
-        let loadingScene, loadAnimID, tracer, manager, Loadtrack, elapsed;
+        let loadingScene, tracer, manager, Loadtrack, elapsed;
         let mirror, track, botPlane;
         let rightFoot, leftFoot, rightPost, leftPost, mainBar;
         let loadComplete = false;
@@ -572,9 +570,7 @@ function TrackScene( {setNavMode, layoutStyle, camAspect, sizeWindow, setProgNav
                     
                     const camEuler2 = new THREE.Euler().setFromQuaternion(camera.quaternion);
                     storedRotation = new THREE.Quaternion().setFromEuler(camEuler2);
-                    storedRotation.normalize();
-
-                    
+                    storedRotation.normalize();    
                 }
                 let easing = easeIOCubic(camProgress2);
 

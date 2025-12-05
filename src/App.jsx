@@ -5,6 +5,7 @@ import layoutStatus from './utils/layoutManager.js';
 import { useState, useEffect } from 'react';
 import './styles/App.css'
 import './styles/index.css';
+import camPoints from './panelMidpoint.json' with {type: 'json'};
 
 export default function App() {
   const [navbarVis, setNavbarVis] = useState(false);
@@ -17,6 +18,9 @@ export default function App() {
   });
   const [navProg, setNavProg] = useState(0);
   const [camPhase, setCamPhase] = useState(0);
+  const [group, setGroup] = useState([0, 1]);
+
+  const panelInstances = camPoints.length;
 
   useEffect(() => {
     const handleResize = () => {
@@ -38,6 +42,19 @@ export default function App() {
       setNavbarVis(false);
     } else if (camPhase === 3 && navProg >= 0.999) {
       setNavbarVis(true);
+    }
+
+    const panelSpacing = 1/(panelInstances-1);
+    const start = 0.5*panelSpacing;
+    const end = 1-(0.5*panelSpacing);
+
+    if (navProg<start) {
+        setGroup([0, 1]);
+    } else if (navProg>end) {
+        setGroup([panelInstances-1, panelInstances]);
+    } else {
+        const currentID = Math.ceil(navProg/panelSpacing);
+        setGroup([currentID-1, currentID, currentID+1]);
     }
 
     // console.log(navbarVis);
@@ -62,6 +79,7 @@ export default function App() {
         sizeWindow={windowSize}  
         setProgNav={setNavProg}
         setCamPhase={setCamPhase}
+        panelGroup={group}
       />
     </>
   );

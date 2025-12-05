@@ -7,15 +7,13 @@ import '../styles/navbar.css';
 // new navbar code
 export default function Navbar({mode, layoutStyle, visNavbar, prog}) {
   let navPos = 0;
-  // let navWid = 0;
+
   if (prog<0.00326) {
-    // navWid = 65.25 + (34.75/0.00326)*prog
     navPos = (-200/0.00326)*prog;
   }
   if (prog>=0.00326 && prog<0.05 || prog>=0.987 && prog<0.999) {
     navPos = -200;
   }
- // console.log(visNavbar);
 
   if (layoutStyle === 'wide' || layoutStyle === 'medium' && prog<0.05) {
     return (
